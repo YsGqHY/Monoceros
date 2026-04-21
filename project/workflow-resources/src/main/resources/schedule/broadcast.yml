@@ -1,0 +1,17 @@
+# 示例：周期广播调度
+# 支持热重载
+resource-version: 1
+
+id: world.tick.broadcast
+type: periodic
+delay: 20t
+period: 200t
+auto-start: true
+prototype: false
+async: false
+max-runs: -1
+execute:
+  route: script
+  value: schedule.world.tick.broadcast
+variables:
+  source: periodic

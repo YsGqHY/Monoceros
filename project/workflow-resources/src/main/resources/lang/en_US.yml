@@ -1,0 +1,42 @@
+# Monoceros English Language File
+resource-version: 1
+
+script:
+  load-success: "Scripts loaded: {0} success, {1} failed"
+  preheat-success: "Scripts preheated: {0}"
+  compile-error: "Script compile error: {0}"
+  execute-error: "Script execute error: {0}"
+  type-missing: "Script type not registered: {0}"
+
+dispatcher:
+  load-success: "Dispatchers loaded: {0}"
+  register-success: "Registered dispatcher: {0}"
+  event-not-found: "Cannot resolve event class: {0}"
+
+schedule:
+  load-success: "Schedules loaded: {0}"
+  start-success: "Started schedule: {0} [{1}]"
+  auto-start: "Auto-started schedules: {0}"
+
+command:
+  load-success: "Commands loaded: {0}"
+  register-success: "Registered command: {0}"
+
+wireshark:
+  session-open: "Opened packet session: {0}"
+  tap-register: "Registered packet tap: {0}"
+
+volatility:
+  illusion-clear: "Cleared illusion: {0}"
+
+workflow:
+  action:
+    load-success: "Action workflows loaded: {0}"
+    node-register: "Registered action node: {0}"
+    node-missing: "Action node type not registered: {0}"
+  property:
+    accessor-register: "Registered property accessor: {0}"
+
+ops:
+  reload-success: "Reload complete"
+  reload-failed: "Reload failed: {0}"

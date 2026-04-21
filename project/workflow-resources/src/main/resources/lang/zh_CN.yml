@@ -1,0 +1,50 @@
+# Monoceros 简体中文语言文件
+resource-version: 1
+
+# 脚本系统
+script:
+  load-success: "脚本加载完成: {0} 成功, {1} 失败"
+  preheat-success: "脚本预热完成: {0} 个"
+  compile-error: "脚本编译失败: {0}"
+  execute-error: "脚本执行失败: {0}"
+  type-missing: "脚本类型未注册: {0}"
+
+# 事件分发
+dispatcher:
+  load-success: "事件分发器加载完成: {0} 个"
+  register-success: "注册分发器: {0}"
+  event-not-found: "无法解析事件类: {0}"
+
+# 调度系统
+schedule:
+  load-success: "调度定义加载完成: {0} 个"
+  start-success: "启动调度: {0} [{1}]"
+  auto-start: "自动启动调度: {0} 个"
+
+# 命令系统
+command:
+  load-success: "命令定义加载完成: {0} 个"
+  register-success: "注册命令: {0}"
+
+# 数据包系统
+wireshark:
+  session-open: "打开 packet 会话: {0}"
+  tap-register: "注册 packet tap: {0}"
+
+# 挥发能力
+volatility:
+  illusion-clear: "清除幻象: {0}"
+
+# 动作工作流
+workflow:
+  action:
+    load-success: "动作工作流定义加载完成: {0} 个"
+    node-register: "注册动作节点: {0}"
+    node-missing: "节点类型未注册: {0}"
+  property:
+    accessor-register: "注册属性访问器: {0}"
+
+# 运维
+ops:
+  reload-success: "重载完成"
+  reload-failed: "重载失败: {0}"

@@ -1,0 +1,13 @@
+# 示例：玩家加入事件分发器
+# 支持热重载
+resource-version: 1
+
+id: player.join.welcome
+listen-event: PlayerJoinEvent
+listen-priority: NORMAL
+weight: 20
+execute:
+  route: script
+  value: dispatcher.player-join
+variables:
+  source: join

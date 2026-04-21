@@ -1,0 +1,17 @@
+# 示例：战斗命中反馈动作工作流
+# 支持热重载
+resource-version: 1
+
+id: combat.hit-feedback
+failure-policy: continue
+nodes:
+  - id: log-hit
+    type: log
+    message: "战斗命中反馈触发"
+  - id: set-damage
+    type: set
+    key: damage
+    value: 10
+  - id: run-script
+    type: script
+    script: action.combat.hit-feedback

@@ -1,0 +1,26 @@
+# Monoceros 主配置文件
+# 修改后可通过 /monoceros reload 热重载
+resource-version: 1
+
+# 调试模式
+# true: 输出详细诊断日志
+# false: 仅输出关键信息
+debug: false
+
+# 脚本系统配置
+script:
+  # 文件监听节流间隔（毫秒）
+  # 设为 0 或负数则不启用文件监听
+  watcher-throttle-ms: 500
+
+# 数据包系统配置
+wireshark:
+  # 是否允许 packet 拦截
+  # true: 允许配置中的 tap 取消原始数据包
+  # false: 即使 tap 写了 intercept，也不会生效
+  allow-intercept: false
+
+  # 是否允许 packet 覆写
+  # true: 允许配置中的 tap 替换原始数据包
+  # false: 即使 tap 写了 rewrite，也不会生效
+  allow-rewrite: false
