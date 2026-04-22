@@ -232,6 +232,26 @@ class ScriptService(
             }
         }
 
+        // 高级脚本定义封装
+        val parameters = mutableMapOf<String, String>()
+        section.getConfigurationSection("parameters")?.let { params ->
+            for (key in params.getKeys(false)) {
+                params.getString(key)?.let { parameters[key] = it }
+            }
+        }
+        val condition = section.getString("condition")
+        val deny = section.getString("deny")
+        val functions = mutableMapOf<String, String>()
+        section.getConfigurationSection("functions")?.let { funcs ->
+            for (key in funcs.getKeys(false)) {
+                funcs.getString(key)?.let { functions[key] = it }
+            }
+        }
+        val timeoutMs = section.getLong("timeout", 0)
+        val onTimeout = section.getString("on-timeout")
+        val onException = section.getString("on-exception")
+        val returnConversion = section.getString("return-conversion")
+
         return ScriptDefinition(
             id = id,
             source = MonocerosScriptSource(type = type, content = content, origin = file.path),
@@ -241,6 +261,14 @@ class ScriptService(
             asyncAllowed = async,
             tags = tags,
             metadata = metadata,
+            parameters = parameters,
+            condition = condition,
+            deny = deny,
+            functions = functions,
+            timeoutMs = timeoutMs,
+            onTimeout = onTimeout,
+            onException = onException,
+            returnConversion = returnConversion,
         )
     }
 }
