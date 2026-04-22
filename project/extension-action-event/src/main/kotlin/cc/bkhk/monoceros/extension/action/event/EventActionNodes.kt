@@ -64,6 +64,35 @@ class EventReplyNode : ActionNode {
     }
 }
 
+/** 读取事件取消状态 */
+class EventCancelledNode : ActionNode {
+    override val type = "event.cancelled"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val event = context.variables["event"] as? org.bukkit.event.Cancellable ?: return false
+        return event.isCancelled
+    }
+}
+
+/** 获取事件名称 */
+class EventNameNode : ActionNode {
+    override val type = "event.name"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val event = context.variables["event"] as? org.bukkit.event.Event ?: return null
+        return event.eventName
+    }
+}
+
+/** 异步等待指定事件触发（带超时） */
+class EventWaitNode : ActionNode {
+    override val type = "event.wait"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val eventName = definition.config["event"] as? String ?: return null
+        val timeoutTicks = (definition.config["timeout"] as? Number)?.toLong() ?: 200L
+        // 返回 ActionResult.Delay 让引擎异步等待
+        return cc.bkhk.monoceros.api.workflow.ActionResult.Delay(timeoutTicks)
+    }
+}
+
 class EventActionExtension : NativeExtension() {
     override val id = "action-event"
     override val name = "事件域动作扩展"
@@ -75,5 +104,8 @@ class EventActionExtension : NativeExtension() {
         service.registerNode(EventIgnoreNode())
         service.registerNode(EventWriteNode())
         service.registerNode(EventReplyNode())
+        service.registerNode(EventCancelledNode())
+        service.registerNode(EventNameNode())
+        service.registerNode(EventWaitNode())
     }
 }
