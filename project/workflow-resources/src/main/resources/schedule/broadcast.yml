@@ -14,4 +14,4 @@ execute:
   route: script
   value: schedule.world.tick.broadcast
 variables:
-  source: periodic
+  triggerSource: periodic

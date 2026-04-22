@@ -10,4 +10,4 @@ execute:
   route: script
   value: dispatcher.player-join
 variables:
-  source: join
+  triggerSource: join
