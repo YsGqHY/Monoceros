@@ -135,6 +135,7 @@ class NoopVolatilityService : VolatilityService {
         override fun putBlock(key: IllusionKey, location: Location, data: BlockData) {}
         override fun removeBlock(key: IllusionKey, location: Location) {}
         override fun applyWorldBorder(key: IllusionKey, state: WorldBorderState) {}
+        override fun setEntityFlag(key: IllusionKey, entity: org.bukkit.entity.Entity, flag: EntityFlag, value: Boolean) {}
         override fun clear(key: IllusionKey) {}
         override fun clearViewer(viewerId: java.util.UUID) {}
     }

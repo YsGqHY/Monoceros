@@ -3,14 +3,17 @@ package cc.bkhk.monoceros.wireshark
 import cc.bkhk.monoceros.Monoceros
 import cc.bkhk.monoceros.api.wireshark.PacketContext
 import cc.bkhk.monoceros.api.wireshark.PacketDirection
+import cc.bkhk.monoceros.api.wireshark.PacketRewriteSpec
 import cc.bkhk.monoceros.api.wireshark.PacketRoute
 import cc.bkhk.monoceros.api.wireshark.PacketTapDefinition
 import cc.bkhk.monoceros.api.wireshark.PacketTraceRecord
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
 import org.bukkit.entity.Player
 import taboolib.common.platform.event.SubscribeEvent
+import taboolib.common.platform.function.submit
 import taboolib.module.nms.PacketReceiveEvent
 import taboolib.module.nms.PacketSendEvent
+import java.util.UUID
 
 /**
  * Packet 事件监听器
@@ -104,6 +107,7 @@ object WiresharkListener {
         )
         context.variables["packetName"] = packetName
         context.variables["player"] = player
+        context.variables["traceId"] = "pkt-${tap.id}-${UUID.randomUUID()}"
 
         // 4. 过滤器
         for (filterSpec in tap.filters) {
@@ -126,23 +130,34 @@ object WiresharkListener {
         // 6. 解析（补充可读变量）
         if (tap.parse) {
             context.variables["packetClass"] = packet.javaClass.simpleName
+            context.variables["packetPackage"] = packet.javaClass.`package`?.name
+            context.variables["packetToString"] = packet.toString()
         }
 
-        // 7. 路由
-        tap.route?.let { route ->
-            try {
-                executeRoute(svc, route, context, player)
-            } catch (e: Exception) {
-                DiagnosticLogger.warn(MODULE, "tap 路由执行异常: ${tap.id}", e)
+        // 7. rewrite（直接操作 NMS packet 对象，不涉及 Bukkit API，保留在当前线程）
+        tap.rewrite?.let { rewrite ->
+            if (svc.allowRewrite) {
+                applyRewrite(rewrite, packet, context)
             }
         }
 
-        // 8. 拦截
+        // 8. 路由（涉及脚本/工作流执行，可能修改 Bukkit 状态，切回主线程）
+        tap.route?.let { route ->
+            submit(async = false) {
+                try {
+                    executeRoute(svc, route, context, player)
+                } catch (e: Exception) {
+                    DiagnosticLogger.warn(MODULE, "tap 路由执行异常: ${tap.id}", e)
+                }
+            }
+        }
+
+        // 9. 拦截
         if (tap.intercept && svc.allowIntercept) {
             context.cancelled = true
         }
 
-        // 9. 应用结果
+        // 10. 应用结果
         if (context.cancelled) {
             cancelAction()
         }
@@ -197,6 +212,26 @@ object WiresharkListener {
             "exclude-name" -> context.variables["packetName"] == value
             "exclude-regex" -> (context.variables["packetName"] as? String)?.matches(Regex(value)) == true
             else -> false
+        }
+    }
+
+    private fun applyRewrite(rewrite: PacketRewriteSpec, packet: Any, context: PacketContext) {
+        when (rewrite.type.lowercase()) {
+            "field-set", "set-field" -> {
+                val fieldName = rewrite.config["field"]?.toString() ?: return
+                val value = rewrite.config["value"]
+                val field = runCatching {
+                    packet.javaClass.getDeclaredField(fieldName).apply { isAccessible = true }
+                }.getOrNull() ?: return
+                runCatching { field.set(packet, value) }
+                    .onSuccess {
+                        context.variables["rewriteField"] = fieldName
+                        context.variables["rewriteValue"] = value
+                    }
+                    .onFailure { ex ->
+                        DiagnosticLogger.warn(MODULE, "packet 字段覆写失败: $fieldName", ex)
+                    }
+            }
         }
     }
 }

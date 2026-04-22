@@ -46,8 +46,7 @@ class DefaultPacketService(
     }
 
     override fun openSession(player: Player): PacketSession {
-        val session = DefaultPacketSession(player.uniqueId)
-        sessions[player.uniqueId] = session
+        val session = sessions.computeIfAbsent(player.uniqueId) { DefaultPacketSession(it) }
         DiagnosticLogger.info(MODULE, "打开 packet 会话: ${player.name}")
         return session
     }

@@ -17,14 +17,14 @@ object VolatilityServiceLoader {
     private lateinit var service: DefaultVolatilityService
 
     @Awake(LifeCycle.LOAD)
-    private fun onLoad() {
+    fun onLoad() {
         service = DefaultVolatilityService(illusionService)
         PlatformFactory.registerAPI<VolatilityService>(service)
         DiagnosticLogger.info(MODULE, "挥发能力服务已注册到 PlatformFactory")
     }
 
     @Awake(LifeCycle.DISABLE)
-    private fun onDisable() {
+    fun onDisable() {
         illusionService.clearAll()
         DiagnosticLogger.info(MODULE, "挥发能力系统已清理")
     }

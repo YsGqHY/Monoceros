@@ -2,6 +2,7 @@ package cc.bkhk.monoceros.api.volatility
 
 import org.bukkit.Location
 import org.bukkit.block.data.BlockData
+import org.bukkit.entity.Entity
 import java.util.UUID
 
 /**
@@ -18,7 +19,7 @@ data class IllusionKey(
 /**
  * 幻象会话服务
  *
- * 管理伪方块、伪世界边界等客户端幻象效果的生命周期。
+ * 管理伪方块、伪世界边界、实体标志位等客户端幻象效果的生命周期。
  * 同一玩家可被多个机制同时写入幻象状态，通过 [IllusionKey] 精准回滚。
  */
 interface IllusionSessionService {
@@ -31,6 +32,9 @@ interface IllusionSessionService {
 
     /** 应用幻象世界边界 */
     fun applyWorldBorder(key: IllusionKey, state: WorldBorderState)
+
+    /** 设置实体标志位幻象（如发光效果） */
+    fun setEntityFlag(key: IllusionKey, entity: Entity, flag: EntityFlag, value: Boolean)
 
     /** 清除指定 key 的所有幻象效果 */
     fun clear(key: IllusionKey)

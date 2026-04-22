@@ -13,8 +13,6 @@ import java.util.concurrent.atomic.AtomicReference
  */
 class DefaultScheduleHandle(
     override val definitionId: String,
-    /** 停止回调，由 runner 设置 */
-    private val stopCallback: () -> Unit = {},
 ) : ScheduleHandle {
 
     override val runtimeId: String = UUID.randomUUID().toString().substring(0, 8)
@@ -22,6 +20,10 @@ class DefaultScheduleHandle(
 
     private val _state = AtomicReference(ScheduleState.WAITING)
     private val _runCount = AtomicInteger(0)
+
+    /** 停止回调，由 runner 通过 [setCancelCallback] 设置 */
+    @Volatile
+    private var cancelCallback: (() -> Unit)? = null
 
     override val state: ScheduleState get() = _state.get()
     override val runCount: Int get() = _runCount.get()
@@ -35,8 +37,18 @@ class DefaultScheduleHandle(
     }
 
     override fun stop() {
-        _state.set(ScheduleState.TERMINATED)
-        stopCallback()
+        if (_state.getAndSet(ScheduleState.TERMINATED) != ScheduleState.TERMINATED) {
+            cancelCallback?.invoke()
+        }
+    }
+
+    /** 设置取消回调（由 ScheduleRunnerFactory 在 task 创建后调用） */
+    fun setCancelCallback(callback: () -> Unit) {
+        cancelCallback = callback
+        // 如果在设置回调之前已经被 stop，立即执行取消
+        if (_state.get() == ScheduleState.TERMINATED) {
+            callback()
+        }
     }
 
     /** 标记为运行中 */

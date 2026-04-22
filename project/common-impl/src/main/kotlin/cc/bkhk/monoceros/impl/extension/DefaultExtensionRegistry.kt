@@ -18,6 +18,11 @@ class DefaultExtensionRegistry : ExtensionRegistry {
 
     override fun register(extension: Extension) {
         extensions[extension.id] = extension
+        try {
+            extension.onEnable()
+        } catch (e: Exception) {
+            DiagnosticLogger.warn(MODULE, "扩展启用失败: ${extension.id}", e)
+        }
         DiagnosticLogger.info(MODULE, "注册扩展: ${extension.id} (${extension.name} v${extension.version})")
     }
 

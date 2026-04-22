@@ -16,6 +16,7 @@ import cc.bkhk.monoceros.impl.config.ConfigFileHash
 import cc.bkhk.monoceros.impl.config.ConfigService
 import cc.bkhk.monoceros.impl.config.ConfigServiceCallback
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
+import taboolib.common.platform.function.submit
 import taboolib.library.configuration.ConfigurationSection
 import taboolib.module.configuration.Configuration
 import java.util.concurrent.ConcurrentHashMap
@@ -38,6 +39,9 @@ class DefaultCommandService(
     private val definitions = ConcurrentHashMap<String, CommandDefinition>()
     private val compiler = CommandCompiler(handlerRegistry, suggestionRegistry)
 
+    /** 文件 ID -> 该文件产出的命令定义 ID 集合（用于增量卸载） */
+    private val fileToDefinitionIds = ConcurrentHashMap<String, MutableSet<String>>()
+
     override fun register(definition: CommandDefinition) {
         // 先注销旧命令
         unregister(definition.id)
@@ -54,6 +58,7 @@ class DefaultCommandService(
         // 注销所有现有命令
         compiler.unregisterAll()
         definitions.clear()
+        fileToDefinitionIds.clear()
 
         // 清空哈希快照，确保全量扫描时所有文件都触发 onCreated
         clearHashes()
@@ -81,6 +86,7 @@ class DefaultCommandService(
                 f.relativeTo(dir).path.replace('\\', '/').substringBeforeLast('.').replace('/', '.') == fileId
         } ?: return 0
 
+        val loadedIds = mutableSetOf<String>()
         var count = 0
         try {
             val config = Configuration.loadFromFile(file)
@@ -90,26 +96,38 @@ class DefaultCommandService(
                 val definition = parseDefinition(config, fileId)
                 if (definition != null) {
                     register(definition)
+                    loadedIds.add(definition.id)
                     count++
                 }
-                return count
-            }
-
-            // 多定义文件
-            for (key in config.getKeys(false)) {
-                val section = config.getConfigurationSection(key) ?: continue
-                if (!section.contains("root")) continue
-                val id = section.getString("id") ?: "$fileId.$key"
-                val definition = parseDefinition(section, id)
-                if (definition != null) {
-                    register(definition)
-                    count++
+            } else {
+                // 多定义文件
+                for (key in config.getKeys(false)) {
+                    val section = config.getConfigurationSection(key) ?: continue
+                    if (!section.contains("root")) continue
+                    val id = section.getString("id") ?: "$fileId.$key"
+                    val definition = parseDefinition(section, id)
+                    if (definition != null) {
+                        register(definition)
+                        loadedIds.add(definition.id)
+                        count++
+                    }
                 }
             }
         } catch (e: Exception) {
             DiagnosticLogger.warn(MODULE, "命令文件解析失败: ${file.path}", e)
         }
+
+        // 记录文件到定义 ID 的映射
+        if (loadedIds.isNotEmpty()) {
+            fileToDefinitionIds[fileId] = loadedIds
+        }
         return count
+    }
+
+    /** 按文件 ID 注销该文件关联的所有命令 */
+    private fun unregisterByFileId(fileId: String) {
+        val ids = fileToDefinitionIds.remove(fileId) ?: return
+        ids.forEach { unregister(it) }
     }
 
     /** 从 YAML 配置节解析 CommandDefinition */
@@ -212,15 +230,21 @@ class DefaultCommandService(
     fun createWatcherCallback(): ConfigServiceCallback = object : ConfigServiceCallback {
         override fun onCreated(fileId: String, hash: ConfigFileHash) {
             DiagnosticLogger.info(MODULE, "检测到新命令文件: $fileId")
-            reloadAll()
+            // 命令注册涉及 Bukkit CommandMap，必须在主线程执行
+            submit(async = false) { loadFile(fileId) }
         }
         override fun onModified(fileId: String, hash: ConfigFileHash) {
             DiagnosticLogger.info(MODULE, "检测到命令文件变更: $fileId")
-            reloadAll()
+            // 基于真实映射卸载，再重新加载，在主线程执行
+            submit(async = false) {
+                unregisterByFileId(fileId)
+                loadFile(fileId)
+            }
         }
         override fun onDeleted(fileId: String) {
             DiagnosticLogger.info(MODULE, "检测到命令文件删除: $fileId")
-            reloadAll()
+            // 基于真实映射卸载，在主线程执行
+            submit(async = false) { unregisterByFileId(fileId) }
         }
     }
 }

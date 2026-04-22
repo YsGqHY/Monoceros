@@ -100,6 +100,16 @@ object DispatcherListener {
     }
 
     /**
+     * 虚拟事件分发入口
+     */
+    fun dispatchVirtual(event: Event) {
+        val eventClass = event.javaClass
+        EventPriority.entries.forEach { priority ->
+            accept(eventClass, priority, event)
+        }
+    }
+
+    /**
      * 事件到达时的分发入口
      */
     private fun accept(eventClass: Class<out Event>, priority: EventPriority, event: Event) {

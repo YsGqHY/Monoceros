@@ -28,6 +28,9 @@ subprojects {
             install(Database)
             install(CommandHelper)
             install(I18n, MinecraftChat, MinecraftEffect)
+            // Aether 解析器在部分仓库（如 Fluxon 仓库）上存在兼容性问题，
+            // 强制使用 Legacy 下载器以保证 Fluxon 运行时能正常下载
+            enableLegacyDependencyResolver = true
         }
         version {
             taboolib = "6.3.0-716e043"
@@ -41,6 +44,12 @@ subprojects {
 
     dependencies {
         compileOnly(kotlin("stdlib"))
+        // Bukkit 核心依赖（全局共享，子模块无需重复声明）
+        compileOnly("ink.ptms.core:v12004:12004:mapped")
+        compileOnly("ink.ptms.core:v12004:12004:universal")
+        compileOnly("ink.ptms.core:v12110:12110:mapped")
+        compileOnly("ink.ptms.core:v12110:12110:universal")
+        compileOnly("ink.ptms.core:v260100:260100")
     }
 
     java {
@@ -60,6 +69,4 @@ subprojects {
     }
 }
 
-gradle.buildFinished {
-    buildDir.deleteRecursively()
-}
+// 根模块不产出构建产物，清理由各子模块自行管理

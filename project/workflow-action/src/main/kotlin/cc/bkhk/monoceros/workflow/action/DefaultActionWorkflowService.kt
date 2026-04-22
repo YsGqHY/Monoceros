@@ -4,6 +4,7 @@ import cc.bkhk.monoceros.api.workflow.ActionContext
 import cc.bkhk.monoceros.api.workflow.ActionFailurePolicy
 import cc.bkhk.monoceros.api.workflow.ActionNode
 import cc.bkhk.monoceros.api.workflow.ActionNodeDefinition
+import cc.bkhk.monoceros.api.workflow.ActionResult
 import cc.bkhk.monoceros.api.workflow.ActionWorkflowDefinition
 import cc.bkhk.monoceros.api.workflow.ActionWorkflowService
 import cc.bkhk.monoceros.impl.config.ConfigFileHash
@@ -12,6 +13,7 @@ import cc.bkhk.monoceros.impl.config.ConfigServiceCallback
 import cc.bkhk.monoceros.impl.registry.ConcurrentRegistry
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
 import taboolib.common.platform.ProxyCommandSender
+import taboolib.common.platform.function.submit
 import taboolib.library.configuration.ConfigurationSection
 import taboolib.module.configuration.Configuration
 import java.util.concurrent.ConcurrentHashMap
@@ -32,6 +34,9 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
 
     /** 工作流定义注册表 */
     private val definitions = ConcurrentHashMap<String, ActionWorkflowDefinition>()
+
+    /** 文件 ID -> 该文件产出的工作流定义 ID 集合（用于增量卸载） */
+    private val fileToDefinitionIds = ConcurrentHashMap<String, MutableSet<String>>()
 
     override fun registerNode(node: ActionNode): ActionNode {
         nodeRegistry.register(node.type, node)
@@ -54,16 +59,31 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
         context.variables.putAll(variables)
         context.variables["workflowId"] = id
 
+        return executeNodes(definition, context, definition.nodes, 0)
+    }
+
+    /**
+     * 执行节点链（从指定索引开始）
+     *
+     * 支持 [ActionResult.Delay] 异步延续和 [ActionResult.Branch] 条件跳转。
+     */
+    private fun executeNodes(
+        definition: ActionWorkflowDefinition,
+        context: ActionContext,
+        nodes: List<ActionNodeDefinition>,
+        startIndex: Int,
+    ): Any? {
         var lastResult: Any? = null
 
-        for (nodeDef in definition.nodes) {
+        var i = startIndex
+        while (i < nodes.size) {
+            val nodeDef = nodes[i]
             val node = nodeRegistry.get(nodeDef.type)
             if (node == null) {
-                DiagnosticLogger.warn(MODULE, "节点类型未注册: ${nodeDef.type} (workflow=$id, node=${nodeDef.id})")
+                DiagnosticLogger.warn(MODULE, "节点类型未注册: ${nodeDef.type} (workflow=${definition.id}, node=${nodeDef.id})")
                 when (definition.failurePolicy) {
                     ActionFailurePolicy.STOP -> return lastResult
-                    ActionFailurePolicy.SKIP_NODE -> continue
-                    ActionFailurePolicy.CONTINUE -> continue
+                    ActionFailurePolicy.SKIP_NODE, ActionFailurePolicy.CONTINUE -> { i++; continue }
                 }
             }
 
@@ -71,16 +91,57 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
             context.trace.add(nodeDef.id)
 
             try {
-                lastResult = node.execute(context, nodeDef)
-                context.variables["lastResult"] = lastResult
+                val result = node.execute(context, nodeDef)
+
+                when (result) {
+                    is ActionResult.Delay -> {
+                        // 异步延续：延迟指定 tick 后执行剩余节点
+                        val remainingNodes = nodes
+                        val nextIndex = i + 1
+                        val capturedLastResult = lastResult
+                        submit(delay = result.ticks) {
+                            context.variables["lastResult"] = capturedLastResult
+                            executeNodes(definition, context, remainingNodes, nextIndex)
+                        }
+                        return lastResult
+                    }
+                    is ActionResult.Branch -> {
+                        context.variables["lastResult"] = result.accepted
+                        if (result.accepted) {
+                            // 条件成立：执行 then-workflow（如果有），然后继续后续节点
+                            result.thenWorkflow?.let { wfId ->
+                                execute(wfId, context.sender, context.variables)
+                            }
+                        } else {
+                            // 条件不成立：执行 else-workflow（如果有），然后中断
+                            result.elseWorkflow?.let { wfId ->
+                                execute(wfId, context.sender, context.variables)
+                            }
+                            return lastResult
+                        }
+                    }
+                    is ActionResult.Break -> {
+                        return lastResult
+                    }
+                    is ActionResult.Continue -> {
+                        lastResult = result.value
+                        context.variables["lastResult"] = lastResult
+                    }
+                    else -> {
+                        // 普通返回值
+                        lastResult = result
+                        context.variables["lastResult"] = lastResult
+                    }
+                }
             } catch (e: Exception) {
-                DiagnosticLogger.warn(MODULE, "节点执行失败: ${nodeDef.id} (workflow=$id)", e)
+                DiagnosticLogger.warn(MODULE, "节点执行失败: ${nodeDef.id} (workflow=${definition.id})", e)
                 when (definition.failurePolicy) {
                     ActionFailurePolicy.STOP -> return lastResult
-                    ActionFailurePolicy.SKIP_NODE -> continue
-                    ActionFailurePolicy.CONTINUE -> continue
+                    ActionFailurePolicy.SKIP_NODE, ActionFailurePolicy.CONTINUE -> {}
                 }
             }
+
+            i++
         }
 
         return lastResult
@@ -88,6 +149,7 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
 
     override fun reloadAll(): Int {
         definitions.clear()
+        fileToDefinitionIds.clear()
 
         // 清空哈希快照，确保全量扫描时所有文件都触发 onCreated
         clearHashes()
@@ -115,6 +177,7 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
                 f.relativeTo(dir).path.replace('\\', '/').substringBeforeLast('.').replace('/', '.') == fileId
         } ?: return 0
 
+        val loadedIds = mutableSetOf<String>()
         var count = 0
         try {
             val config = Configuration.loadFromFile(file)
@@ -124,26 +187,38 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
                 val definition = parseDefinition(config, fileId)
                 if (definition != null) {
                     definitions[definition.id] = definition
+                    loadedIds.add(definition.id)
                     count++
                 }
-                return count
-            }
-
-            // 多定义文件
-            for (key in config.getKeys(false)) {
-                val section = config.getConfigurationSection(key) ?: continue
-                if (!section.contains("nodes")) continue
-                val id = section.getString("id") ?: "$fileId.$key"
-                val definition = parseDefinition(section, id)
-                if (definition != null) {
-                    definitions[definition.id] = definition
-                    count++
+            } else {
+                // 多定义文件
+                for (key in config.getKeys(false)) {
+                    val section = config.getConfigurationSection(key) ?: continue
+                    if (!section.contains("nodes")) continue
+                    val id = section.getString("id") ?: "$fileId.$key"
+                    val definition = parseDefinition(section, id)
+                    if (definition != null) {
+                        definitions[definition.id] = definition
+                        loadedIds.add(definition.id)
+                        count++
+                    }
                 }
             }
         } catch (e: Exception) {
             DiagnosticLogger.warn(MODULE, "工作流文件解析失败: ${file.path}", e)
         }
+
+        // 记录文件到定义 ID 的映射
+        if (loadedIds.isNotEmpty()) {
+            fileToDefinitionIds[fileId] = loadedIds
+        }
         return count
+    }
+
+    /** 按文件 ID 注销该文件关联的所有工作流定义 */
+    private fun unregisterByFileId(fileId: String) {
+        val ids = fileToDefinitionIds.remove(fileId) ?: return
+        ids.forEach { definitions.remove(it) }
     }
 
     /** 解析工作流定义 */
@@ -168,19 +243,21 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
         return ActionWorkflowDefinition(id = id, nodes = nodes, failurePolicy = failurePolicy)
     }
 
-    /** 创建文件监听回调 */
+    /** 创建文件监听回调（增量式） */
     fun createWatcherCallback(): ConfigServiceCallback = object : ConfigServiceCallback {
         override fun onCreated(fileId: String, hash: ConfigFileHash) {
             DiagnosticLogger.info(MODULE, "检测到新工作流文件: $fileId")
-            reloadAll()
+            loadFile(fileId)
         }
         override fun onModified(fileId: String, hash: ConfigFileHash) {
             DiagnosticLogger.info(MODULE, "检测到工作流文件变更: $fileId")
-            reloadAll()
+            // 基于真实映射卸载，再重新加载
+            unregisterByFileId(fileId)
+            loadFile(fileId)
         }
         override fun onDeleted(fileId: String) {
             DiagnosticLogger.info(MODULE, "检测到工作流文件删除: $fileId")
-            reloadAll()
+            unregisterByFileId(fileId)
         }
     }
 }
