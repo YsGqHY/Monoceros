@@ -79,7 +79,7 @@ object Fluxon : FluxonHandler {
         // 注入业务变量（先注入，后续系统变量覆盖冲突项）
         variables.forEach { (key, value) ->
             if (key in reservedVariables) {
-                DiagnosticLogger.warn(MODULE, "业务变量 '$key' 与系统保留变量冲突，已忽略")
+                // sender/player 由系统自动注入，业务侧传入的是同一对象，静默跳过
                 return@forEach
             }
             env.defineRootVariable(key, value)

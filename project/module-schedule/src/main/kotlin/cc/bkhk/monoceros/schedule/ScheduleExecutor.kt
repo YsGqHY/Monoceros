@@ -51,6 +51,8 @@ class ScheduleExecutor(
         val senders = resolveSenders(definition.senderSelectors, baseVariables)
         for (resolved in senders) {
             val variables = LinkedHashMap(baseVariables)
+            // sender/player 同时注入到 variables 中供 ActionWorkflow/Handler 路由使用，
+            // Fluxon 脚本路由中这两个变量由运行时自动注入，variables 中的同名项会被静默跳过
             variables["sender"] = resolved.sender
             resolved.player?.let { variables["player"] = it }
 
