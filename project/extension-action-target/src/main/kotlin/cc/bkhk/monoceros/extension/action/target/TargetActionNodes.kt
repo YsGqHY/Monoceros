@@ -119,6 +119,107 @@ class TargetFilterNode : ActionNode {
     }
 }
 
+/** 对 targets 列表逐个执行子脚本/工作流 */
+class TargetForeachNode : ActionNode {
+    override val type = "target.foreach"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        @Suppress("UNCHECKED_CAST")
+        val targets = context.variables["targets"] as? List<Any> ?: return emptyList<Any>()
+        val scriptId = definition.config["script"] as? String
+        val workflowId = definition.config["workflow"] as? String
+        val results = mutableListOf<Any?>()
+        for (target in targets) {
+            val vars = HashMap(context.variables)
+            vars["target"] = target
+            if (target is Entity) vars["entity"] = target
+            if (target is Player) vars["player"] = target
+            val result = when {
+                scriptId != null -> Monoceros.api().scripts().invoke(scriptId, context.sender, vars)
+                workflowId != null -> Monoceros.api().actionWorkflow().execute(workflowId, context.sender, vars)
+                else -> target
+            }
+            results.add(result)
+        }
+        return results
+    }
+}
+
+/** 选取最近的 N 个实体 */
+class TargetNearestNode : ActionNode {
+    override val type = "target.nearest"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val count = (definition.config["count"] as? Number)?.toInt() ?: 1
+        val radius = (definition.config["radius"] as? Number)?.toDouble() ?: 10.0
+        val playersOnly = definition.config["players-only"] as? Boolean ?: false
+        val center = (context.variables["location"] as? Location)
+            ?: (context.variables["player"] as? Player)?.location
+            ?: return emptyList<Any>()
+        val self = context.variables["player"] as? Entity
+        val entities = center.world?.getNearbyEntities(center, radius, radius, radius)
+            ?.filter { if (playersOnly) it is Player else true }
+            ?.filter { it != self }
+            ?.sortedBy { it.location.distanceSquared(center) }
+            ?.take(count)
+            ?: emptyList()
+        context.variables["targets"] = entities
+        return entities
+    }
+}
+
+/** 环形区域选取 */
+class TargetRingNode : ActionNode {
+    override val type = "target.ring"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val innerRadius = (definition.config["inner-radius"] as? Number)?.toDouble() ?: 3.0
+        val outerRadius = (definition.config["outer-radius"] as? Number)?.toDouble() ?: 10.0
+        val center = (context.variables["location"] as? Location)
+            ?: (context.variables["player"] as? Player)?.location
+            ?: return emptyList<Any>()
+        val innerSq = innerRadius * innerRadius
+        val outerSq = outerRadius * outerRadius
+        val entities = center.world?.getNearbyEntities(center, outerRadius, outerRadius, outerRadius)
+            ?.filter { 
+                val distSq = it.location.distanceSquared(center)
+                distSq in innerSq..outerSq
+            }
+            ?: emptyList()
+        context.variables["targets"] = entities
+        return entities
+    }
+}
+
+/** 按名称选取指定在线玩家 */
+class TargetPlayerNode : ActionNode {
+    override val type = "target.player"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        val name = definition.config["name"] as? String ?: return emptyList<Any>()
+        val player = Bukkit.getPlayerExact(name) ?: return emptyList<Any>()
+        val targets = listOf(player)
+        context.variables["targets"] = targets
+        return targets
+    }
+}
+
+/** 按实体类型实例过滤 */
+class TargetFilterInstanceNode : ActionNode {
+    override val type = "target.filter.instance"
+    override fun execute(context: ActionContext, definition: ActionNodeDefinition): Any? {
+        @Suppress("UNCHECKED_CAST")
+        val targets = context.variables["targets"] as? List<Any> ?: return emptyList<Any>()
+        val typeName = definition.config["type"] as? String ?: return targets
+        val filtered = targets.filter { entity ->
+            when (typeName.lowercase()) {
+                "player" -> entity is Player
+                "living", "livingentity" -> entity is LivingEntity
+                "entity" -> entity is Entity
+                else -> entity is Entity && entity.type.name.equals(typeName, ignoreCase = true)
+            }
+        }
+        context.variables["targets"] = filtered
+        return filtered
+    }
+}
+
 /** 根据视线选取目标 */
 class TargetLineOfSightNode : ActionNode {
     override val type = "target.line-of-sight"

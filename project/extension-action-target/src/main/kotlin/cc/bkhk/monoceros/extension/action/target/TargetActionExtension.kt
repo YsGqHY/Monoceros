@@ -20,5 +20,10 @@ class TargetActionExtension : NativeExtension() {
         service.registerNode(TargetBoxNode())
         service.registerNode(TargetFilterNode())
         service.registerNode(TargetLineOfSightNode())
+        service.registerNode(TargetForeachNode())
+        service.registerNode(TargetNearestNode())
+        service.registerNode(TargetRingNode())
+        service.registerNode(TargetPlayerNode())
+        service.registerNode(TargetFilterInstanceNode())
     }
 }
