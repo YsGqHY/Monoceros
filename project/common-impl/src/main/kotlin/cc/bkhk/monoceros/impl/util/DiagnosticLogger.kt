@@ -10,8 +10,6 @@ import taboolib.common.platform.function.warning
  */
 object DiagnosticLogger {
 
-    private const val PREFIX = "[Monoceros]"
-
     @Volatile
     private var debug = false
 
@@ -25,26 +23,31 @@ object DiagnosticLogger {
 
     /** 输出诊断信息 */
     fun info(module: String, message: String) {
-        info("$PREFIX [$module] $message")
+        info("[$module] $message")
+    }
+
+    /** 仅在调试模式下输出的详细信息 */
+    fun debug(module: String, message: String) {
+        if (debug) info("[$module] $message")
     }
 
     /** 输出诊断警告 */
     fun warn(module: String, message: String) {
-        warning("$PREFIX [$module] $message")
+        warning("[$module] $message")
     }
 
     /** 输出诊断警告（附带异常） */
     fun warn(module: String, message: String, throwable: Throwable) {
-        warning("$PREFIX [$module] $message")
+        warning("[$module] $message")
         throwable.printStackTrace()
     }
 
     /** 输出模块加载摘要 */
     fun summary(module: String, loaded: Int, failed: Int = 0) {
         if (failed > 0) {
-            warning("$PREFIX [$module] 加载完成: $loaded 成功, $failed 失败")
+            warning("[$module] 加载完成: $loaded 成功, $failed 失败")
         } else {
-            info("$PREFIX [$module] 加载完成: $loaded 项")
+            info("[$module] 加载完成: $loaded 项")
         }
     }
 }

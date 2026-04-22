@@ -80,6 +80,6 @@ object DispatcherServiceLoader {
         reg.register("EntityDamageByEntityEvent", EntityDamageByEntityEventPipeline())
         reg.register("EntityShootBowEvent", EntityShootBowEventPipeline())
 
-        DiagnosticLogger.info(MODULE, "内建 Pipeline 注册完成")
+        DiagnosticLogger.info(MODULE, "内建 Pipeline 注册完成: ${reg.registeredEvents().size} 个事件")
     }
 }

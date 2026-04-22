@@ -35,14 +35,14 @@ class DefaultPacketService(
 
     override fun register(definition: PacketTapDefinition) {
         taps[definition.id] = definition
-        DiagnosticLogger.info(MODULE, "注册 packet tap: ${definition.id}")
+        DiagnosticLogger.debug(MODULE, "注册 packet tap: ${definition.id}")
     }
 
     override fun unregister(id: String) {
         taps.remove(id)
         // 从所有会话中移除该 tap
         sessions.values.forEach { it.enabledTapIds.remove(id) }
-        DiagnosticLogger.info(MODULE, "注销 packet tap: $id")
+        DiagnosticLogger.debug(MODULE, "注销 packet tap: $id")
     }
 
     override fun openSession(player: Player): PacketSession {

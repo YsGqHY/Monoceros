@@ -54,7 +54,7 @@ object ActionWorkflowServiceLoader {
         service.registerNode(DispatchActionNode())
 
         PlatformFactory.registerAPI<ActionWorkflowService>(service)
-        DiagnosticLogger.info(MODULE, "动作工作流服务已注册到 PlatformFactory")
+        DiagnosticLogger.info(MODULE, "动作工作流服务已注册, 内建节点: 15 个")
 
         // 注册到统一重载服务
         ReloadService.register(object : ReloadableService {

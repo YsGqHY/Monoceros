@@ -24,7 +24,7 @@ object FluxonScriptType : MonocerosScriptType {
     override fun preheat(definitionId: String, source: MonocerosScriptSource) {
         val handler = DefaultScriptHandler.resolveFluxonHandler()
         handler.preheat(source.content, definitionId)
-        DiagnosticLogger.info("Fluxon", "脚本预热完成: $definitionId")
+        DiagnosticLogger.debug("Fluxon", "脚本预热完成: $definitionId")
     }
 
     override fun invalidate(definitionId: String) {

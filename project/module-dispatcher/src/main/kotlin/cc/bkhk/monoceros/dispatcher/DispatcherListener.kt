@@ -56,7 +56,7 @@ object DispatcherListener {
             }
         }
 
-        DiagnosticLogger.info(MODULE, "注册 dispatcher: ${dispatcher.definition.id} -> ${eventClass.simpleName}@$priority")
+        DiagnosticLogger.debug(MODULE, "注册 dispatcher: ${dispatcher.definition.id} -> ${eventClass.simpleName}@$priority")
     }
 
     /**
@@ -69,7 +69,7 @@ object DispatcherListener {
             for ((priority, dispatchers) in priorityMap) {
                 val removed = dispatchers.removeAll { it.definition.id == dispatcherId }
                 if (removed) {
-                    DiagnosticLogger.info(MODULE, "注销 dispatcher: $dispatcherId from ${eventClass.simpleName}@$priority")
+                    DiagnosticLogger.debug(MODULE, "注销 dispatcher: $dispatcherId from ${eventClass.simpleName}@$priority")
                     // 若该优先级下已无 dispatcher，移除 ProxyListener
                     if (dispatchers.isEmpty()) {
                         listeners[eventClass]?.remove(priority)?.let { proxy ->

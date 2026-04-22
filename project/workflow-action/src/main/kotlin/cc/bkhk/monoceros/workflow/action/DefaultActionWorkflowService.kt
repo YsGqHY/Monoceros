@@ -40,7 +40,7 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
 
     override fun registerNode(node: ActionNode): ActionNode {
         nodeRegistry.register(node.type, node)
-        DiagnosticLogger.info(MODULE, "注册动作节点: ${node.type}")
+        DiagnosticLogger.debug(MODULE, "注册动作节点: ${node.type}")
         return node
     }
 

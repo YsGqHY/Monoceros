@@ -23,7 +23,7 @@ class DefaultInteractService : InteractService {
 
     override fun register(definition: InteractDefinition) {
         definitions[definition.id] = definition
-        DiagnosticLogger.info("Interact", "注册交互: ${definition.id} (${definition.type})")
+        DiagnosticLogger.debug("Interact", "注册交互: ${definition.id} (${definition.type})")
     }
     override fun unregister(id: String): InteractDefinition? = definitions.remove(id)
     override fun get(id: String): InteractDefinition? = definitions[id]

@@ -20,7 +20,7 @@ object DefaultPipelineRegistry : PipelineRegistry {
         registry.computeIfAbsent(key) { mutableListOf() }.add(pipeline)
         // 按 priority 倒序排列
         registry[key]?.sortByDescending { it.priority }
-        DiagnosticLogger.info(MODULE, "注册 Pipeline: ${pipeline.javaClass.simpleName} -> $eventName (priority=${pipeline.priority})")
+        DiagnosticLogger.debug(MODULE, "注册 Pipeline: ${pipeline.javaClass.simpleName} -> $eventName (priority=${pipeline.priority})")
     }
 
     override fun getPipelines(eventName: String): List<Pipeline> {

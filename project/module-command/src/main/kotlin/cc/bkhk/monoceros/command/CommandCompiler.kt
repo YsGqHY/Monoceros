@@ -55,7 +55,7 @@ class CommandCompiler(
                 buildNode(this, definition.root, definition.id, listOf(primaryName))
             }
             registeredCommands[definition.id] = listOf(primaryName) + aliases
-            DiagnosticLogger.info(MODULE, "注册命令: $primaryName (${definition.id})")
+            DiagnosticLogger.debug(MODULE, "注册命令: $primaryName (${definition.id})")
         } catch (e: Exception) {
             DiagnosticLogger.warn(MODULE, "命令注册失败: ${definition.id}", e)
         }
@@ -72,7 +72,7 @@ class CommandCompiler(
             } catch (_: Exception) {
             }
         }
-        DiagnosticLogger.info(MODULE, "注销命令: $definitionId")
+        DiagnosticLogger.debug(MODULE, "注销命令: $definitionId")
     }
 
     /** 注销所有命令 */

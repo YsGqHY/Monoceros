@@ -23,7 +23,7 @@ class DefaultExtensionRegistry : ExtensionRegistry {
         } catch (e: Exception) {
             DiagnosticLogger.warn(MODULE, "扩展启用失败: ${extension.id}", e)
         }
-        DiagnosticLogger.info(MODULE, "注册扩展: ${extension.id} (${extension.name} v${extension.version})")
+        DiagnosticLogger.debug(MODULE, "注册扩展: ${extension.id} (${extension.name} v${extension.version})")
     }
 
     override fun unregister(id: String): Extension? {
@@ -34,7 +34,7 @@ class DefaultExtensionRegistry : ExtensionRegistry {
             } catch (e: Exception) {
                 DiagnosticLogger.warn(MODULE, "扩展卸载异常: $id", e)
             }
-            DiagnosticLogger.info(MODULE, "注销扩展: $id")
+            DiagnosticLogger.debug(MODULE, "注销扩展: $id")
         }
         return ext
     }

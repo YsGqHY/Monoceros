@@ -20,7 +20,7 @@ class DefaultRegionService : RegionService {
 
     override fun register(definition: RegionDefinition) {
         regions[definition.id] = definition
-        DiagnosticLogger.info("Region", "注册区域: ${definition.id}")
+        DiagnosticLogger.debug("Region", "注册区域: ${definition.id}")
     }
     override fun unregister(id: String): RegionDefinition? = regions.remove(id)
     override fun get(id: String): RegionDefinition? = regions[id]

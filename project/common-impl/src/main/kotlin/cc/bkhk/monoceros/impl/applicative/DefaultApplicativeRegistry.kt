@@ -85,7 +85,7 @@ object DefaultApplicativeRegistry : ClassVisitor(-4), ApplicativeRegistry {
 
             val applicative = instance as AbstractApplicative<*>
             register(applicative.clazz, applicative)
-            DiagnosticLogger.info(MODULE, "自动注册转换器: ${applicative.name} (${applicative.clazz.simpleName})")
+            DiagnosticLogger.debug(MODULE, "自动注册转换器: ${applicative.name} (${applicative.clazz.simpleName})")
         } catch (e: Exception) {
             DiagnosticLogger.warn(MODULE, "转换器自动注册失败: ${javaClass.simpleName}", e)
         }
