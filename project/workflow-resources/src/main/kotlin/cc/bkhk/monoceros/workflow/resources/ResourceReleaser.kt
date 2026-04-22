@@ -27,6 +27,7 @@ object ResourceReleaser {
         "schedule",
         "workflow",
         "script",
+        "wireshark",
     )
 
     /** 根目录下的散落资源文件 */
