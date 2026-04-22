@@ -60,10 +60,16 @@ object DefaultApplicativeRegistry : ClassVisitor(-4), ApplicativeRegistry {
 
     override fun all(): Collection<Applicative<*>> = classRegistry.values.toSet()
 
+    /** Fluxon relocate 后的包前缀，这些类的传递依赖在运行时可能不存在，必须跳过以避免 NoClassDefFoundError */
+    private const val FLUXON_ENGINE_PREFIX = "cc.bkhk.monoceros.engine.fluxon."
+
     /**
      * ClassVisitor 回调：自动扫描并注册 [AbstractApplicative] 子类
      */
     override fun visitStart(clazz: ReflexClass) {
+        // 跳过 Fluxon relocate 后的类（包括内部第三方依赖），避免触发 NoClassDefFoundError
+        val className = clazz.name ?: return
+        if (className.startsWith(FLUXON_ENGINE_PREFIX)) return
         val javaClass = clazz.toClass() ?: return
         if (!AbstractApplicative::class.java.isAssignableFrom(javaClass)) return
         if (javaClass == AbstractApplicative::class.java) return
