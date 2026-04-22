@@ -1,5 +1,7 @@
 package cc.bkhk.monoceros.api.schedule
 
+import taboolib.common.platform.ProxyCommandSender
+
 /**
  * 调度强类型处理器
  *
@@ -19,5 +21,6 @@ data class ScheduleContext(
     val runtimeId: String,
     val runCount: Int,
     val startedAt: Long,
+    val sender: ProxyCommandSender? = null,
     val variables: Map<String, Any?>,
 )

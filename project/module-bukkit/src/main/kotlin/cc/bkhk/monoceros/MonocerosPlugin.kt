@@ -14,7 +14,7 @@ import taboolib.common.platform.function.registerLifeCycleTask
 object MonocerosPlugin : Plugin() {
 
     init {
-        registerLifeCycleTask(LifeCycle.INIT) {
+        registerLifeCycleTask(LifeCycle.ENABLE) {
             try {
                 DefaultMonocerosBooster.startup()
             } catch (e: Exception) {

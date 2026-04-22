@@ -16,14 +16,14 @@ object PropertyWorkflowServiceLoader {
     private lateinit var service: DefaultPropertyWorkflowService
 
     @Awake(LifeCycle.LOAD)
-    private fun onLoad() {
+    fun onLoad() {
         service = DefaultPropertyWorkflowService()
         PlatformFactory.registerAPI<PropertyWorkflowService>(service)
         DiagnosticLogger.info(MODULE, "属性工作流服务已注册到 PlatformFactory")
     }
 
     @Awake(LifeCycle.DISABLE)
-    private fun onDisable() {
+    fun onDisable() {
         DiagnosticLogger.info(MODULE, "属性工作流系统已清理")
     }
 }

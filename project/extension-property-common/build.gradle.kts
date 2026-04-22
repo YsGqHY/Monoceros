@@ -4,8 +4,11 @@ dependencies {
     compileOnly(project(":project:common"))
     compileOnly(project(":project:common-impl"))
     compileOnly(project(":project:workflow-property"))
-    compileOnly("ink.ptms.core:v12004:12004:mapped")
-    compileOnly("ink.ptms.core:v12004:12004:universal")
 }
 
-taboolib { subproject = true }
+taboolib {
+    subproject = true
+    env {
+        install(io.izzel.taboolib.gradle.BukkitNMS)
+    }
+}

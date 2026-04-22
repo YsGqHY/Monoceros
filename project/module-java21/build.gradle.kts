@@ -2,8 +2,7 @@
 
 dependencies {
     compileOnly(project(":project:common"))
-    compileOnly("ink.ptms.core:v12004:12004:mapped")
-    compileOnly("ink.ptms.core:v12004:12004:universal")
+    compileOnly(project(":project:common-impl"))
 }
 
 java {

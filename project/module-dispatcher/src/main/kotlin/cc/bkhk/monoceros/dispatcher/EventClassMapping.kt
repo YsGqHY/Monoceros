@@ -29,6 +29,7 @@ object EventClassMapping {
         "org.bukkit.event.vehicle",
         "org.bukkit.event.weather",
         "org.bukkit.event.world",
+        "cc.bkhk.monoceros.dispatcher.event",
     )
 
     /** 解析缓存 */

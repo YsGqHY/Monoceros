@@ -1,42 +1,45 @@
 # Monoceros English Language File
 resource-version: 1
 
-script:
-  load-success: "Scripts loaded: {0} success, {1} failed"
-  preheat-success: "Scripts preheated: {0}"
-  compile-error: "Script compile error: {0}"
-  execute-error: "Script execute error: {0}"
-  type-missing: "Script type not registered: {0}"
+script-load-success: "Scripts loaded: {0} success, {1} failed"
+script-preheat-success: "Scripts preheated: {0}"
+script-compile-error: "Script compile error: {0}"
+script-execute-error: "Script execute error: {0}"
+script-type-missing: "Script type not registered: {0}"
 
-dispatcher:
-  load-success: "Dispatchers loaded: {0}"
-  register-success: "Registered dispatcher: {0}"
-  event-not-found: "Cannot resolve event class: {0}"
+dispatcher-load-success: "Dispatchers loaded: {0}"
+dispatcher-register-success: "Registered dispatcher: {0}"
+dispatcher-event-not-found: "Cannot resolve event class: {0}"
 
-schedule:
-  load-success: "Schedules loaded: {0}"
-  start-success: "Started schedule: {0} [{1}]"
-  auto-start: "Auto-started schedules: {0}"
+schedule-load-success: "Schedules loaded: {0}"
+schedule-start-success: "Started schedule: {0} [{1}]"
+schedule-auto-start: "Auto-started schedules: {0}"
 
-command:
-  load-success: "Commands loaded: {0}"
-  register-success: "Registered command: {0}"
+command-load-success: "Commands loaded: {0}"
+command-register-success: "Registered command: {0}"
+command-reload-all-start: "Reloading all services..."
+command-reload-all-success: "Reload complete: {0} services"
+command-reload-all-partial: "Reload partial: {0} success, {1} failed"
+command-reload-service-success: "Service {0} reloaded: {1}"
+command-reload-service-failed: "Service {0} reload failed: {1}"
+command-reload-service-not-found: "Service not found: {0}"
+command-version: "Monoceros v{0}"
+command-debug-on: "Debug mode enabled"
+command-debug-off: "Debug mode disabled"
+command-status-header: "=== Monoceros Service Status ==="
+command-status-service: "  {0}: {1}"
+command-script-preheat-success: "Scripts preheated: {0}"
+command-script-stats: "Script cache: size={0}, compilations={1}, hits={2}"
 
-wireshark:
-  session-open: "Opened packet session: {0}"
-  tap-register: "Registered packet tap: {0}"
+wireshark-session-open: "Opened packet session: {0}"
+wireshark-tap-register: "Registered packet tap: {0}"
 
-volatility:
-  illusion-clear: "Cleared illusion: {0}"
+volatility-illusion-clear: "Cleared illusion: {0}"
 
-workflow:
-  action:
-    load-success: "Action workflows loaded: {0}"
-    node-register: "Registered action node: {0}"
-    node-missing: "Action node type not registered: {0}"
-  property:
-    accessor-register: "Registered property accessor: {0}"
+workflow-action-load-success: "Action workflows loaded: {0}"
+workflow-action-node-register: "Registered action node: {0}"
+workflow-action-node-missing: "Action node type not registered: {0}"
+workflow-property-accessor-register: "Registered property accessor: {0}"
 
-ops:
-  reload-success: "Reload complete"
-  reload-failed: "Reload failed: {0}"
+ops-reload-success: "Reload complete"
+ops-reload-failed: "Reload failed: {0}"

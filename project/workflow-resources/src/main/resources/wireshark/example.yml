@@ -1,0 +1,22 @@
+id: example.packet.trace
+
+direction:
+  - send
+  - receive
+
+matcher:
+  type: packet-name
+  value: PacketPlayOutChat
+
+tracking: true
+parse: true
+intercept: false
+
+rewrite:
+  type: field-set
+  field: b
+  value: monoceros
+
+route:
+  type: script
+  value: debug.packet.trace

@@ -12,6 +12,17 @@ object DiagnosticLogger {
 
     private const val PREFIX = "[Monoceros]"
 
+    @Volatile
+    private var debug = false
+
+    /** 获取调试模式状态 */
+    fun isDebug(): Boolean = debug
+
+    /** 设置调试模式 */
+    fun setDebug(enabled: Boolean) {
+        debug = enabled
+    }
+
     /** 输出诊断信息 */
     fun info(module: String, message: String) {
         info("$PREFIX [$module] $message")

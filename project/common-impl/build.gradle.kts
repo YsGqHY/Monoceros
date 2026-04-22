@@ -5,12 +5,13 @@ val fluxonPluginVersion: String by rootProject.extra
 
 dependencies {
     compileOnly(project(":project:common"))
-    compileOnly("ink.ptms.core:v12004:12004:mapped")
-    compileOnly("ink.ptms.core:v12004:12004:universal")
     compileOnly("org.tabooproject.fluxon:core:$fluxonVersion")
     compileOnly("org.tabooproject.fluxon.plugin:core:$fluxonPluginVersion")
     compileOnly("org.tabooproject.fluxon.plugin:common:$fluxonPluginVersion")
     compileOnly("org.tabooproject.fluxon.plugin:platform-bukkit:$fluxonPluginVersion")
+    compileOnly("org.ow2.asm:asm:9.8")
+    compileOnly("org.ow2.asm:asm-util:9.8")
+    compileOnly("org.ow2.asm:asm-commons:9.8")
     compileOnly(fileTree("libs"))
 }
 
