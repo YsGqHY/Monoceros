@@ -34,7 +34,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build plugin
-        run: ./gradlew :plugin:build
+        run: chmod +x gradlew && ./gradlew :plugin:build
 
       - name: Generate changelog
         id: changelog
