@@ -1,0 +1,36 @@
+name: "\U0001F4A1 Feature Request"
+description: "Suggest a new feature or improvement"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your suggestion! Please describe the feature or improvement you'd like to see.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: "What problem are you facing, or what limitation are you running into?"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: "How would you like this to work? Describe your ideal behavior"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: "Have you considered any alternative approaches?"
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Additional Context
+      description: "Any other information that might help (screenshots, example configs, reference links, etc.)"
