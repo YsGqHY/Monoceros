@@ -1,8 +1,13 @@
+import io.izzel.taboolib.gradle.*
+
 // plugin: 最终聚合打包模块
 
 taboolib {
     description {
         name(rootProject.name)
+    }
+    env {
+        install(BukkitNMS, BukkitNMSUtil)
     }
     relocate("org.tabooproject.fluxon", "cc.bkhk.monoceros.engine.fluxon")
 }

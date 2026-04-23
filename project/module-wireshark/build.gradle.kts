@@ -1,3 +1,5 @@
+import io.izzel.taboolib.gradle.*
+
 // module-wireshark: Packet 收发、过滤、匹配、追踪、拦截、覆写
 
 dependencies {
@@ -8,6 +10,6 @@ dependencies {
 taboolib {
     subproject = true
     env {
-        install(io.izzel.taboolib.gradle.BukkitNMS, io.izzel.taboolib.gradle.BukkitNMSUtil)
+        install(BukkitNMS, BukkitNMSUtil)
     }
 }
