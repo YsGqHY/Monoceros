@@ -1,3 +1,7 @@
+<div align="center">
+  <img src=".assets/banner.png" alt="Monoceros" width="600" />
+</div>
+
 # Monoceros
 
 [![License: MIT](https://img.shields.io/github/license/YsGqHY/Monoceros?style=flat-square)](LICENSE)
@@ -53,7 +57,7 @@ project/
 
 ## 配套 Skill
 
-本项目提供三个 Claude Code Skill，用于辅助配置编写与开发：
+本项目提供 Agent Skill，用于辅助配置编写与开发：
 
 | Skill | 说明 |
 |---|---|
