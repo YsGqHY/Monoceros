@@ -41,5 +41,10 @@ workflow-action-node-register: "Registered action node: {0}"
 workflow-action-node-missing: "Action node type not registered: {0}"
 workflow-property-accessor-register: "Registered property accessor: {0}"
 
+startup-info-version: "&7Version: &f{0}"
+startup-info-platform: "&7Platform: &fBukkit"
+startup-info-github: "&7Repository: &bhttps://github.com/YsGqHY/Monoceros"
+startup-info-loaded: "&aPlugin loaded successfully, all systems go."
+
 ops-reload-success: "Reload complete"
 ops-reload-failed: "Reload failed: {0}"

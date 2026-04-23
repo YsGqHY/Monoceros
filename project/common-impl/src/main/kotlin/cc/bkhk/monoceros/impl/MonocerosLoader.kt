@@ -8,7 +8,10 @@ import cc.bkhk.monoceros.impl.extension.DefaultExtensionRegistry
 import taboolib.common.LifeCycle
 import taboolib.common.platform.Awake
 import taboolib.common.platform.PlatformFactory
+import taboolib.common.platform.function.console
 import taboolib.common.platform.function.info
+import taboolib.common.platform.function.pluginVersion
+import taboolib.module.lang.sendLang
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -44,7 +47,11 @@ object MonocerosLoader {
 
     @Awake(LifeCycle.ACTIVE)
     fun onActive() {
-        info("[Monoceros] Active phase - all systems operational.")
+        val c = console()
+        c.sendLang("startup-info-version", pluginVersion)
+        c.sendLang("startup-info-platform")
+        c.sendLang("startup-info-github")
+        c.sendLang("startup-info-loaded")
     }
 
     @Awake(LifeCycle.DISABLE)

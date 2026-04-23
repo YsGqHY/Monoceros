@@ -48,6 +48,12 @@ workflow-action-node-register: "注册动作节点: {0}"
 workflow-action-node-missing: "节点类型未注册: {0}"
 workflow-property-accessor-register: "注册属性访问器: {0}"
 
+# 启动信息
+startup-info-version: "&7插件版本: &f{0}"
+startup-info-platform: "&7运行平台: &fBukkit"
+startup-info-github: "&7开源仓库: &bhttps://github.com/YsGqHY/Monoceros"
+startup-info-loaded: "&a插件加载完成, 一切就绪。"
+
 # 运维
 ops-reload-success: "重载完成"
 ops-reload-failed: "重载失败: {0}"
