@@ -32,6 +32,7 @@ class DefaultScriptHandler(
     companion object {
         /** 自动导入包集合，在 Fluxon 编译前注入 */
         val DEFAULT_PACKAGE_AUTO_IMPORT: MutableSet<String> = mutableSetOf(
+            "cc.bkhk.monoceros.*",
             "cc.bkhk.monoceros.api.*",
             "org.bukkit.*",
             "org.bukkit.entity.*",
