@@ -40,7 +40,7 @@ print("[Monoceros] 周期广播 #${&?runCount} (来源: ${&?triggerSource})")
 // 脚本 ID: action.combat.hit-feedback
 // 被 workflow/action/combat-hit.yml 引用
 
-dmg = &?damage ?? 0
+dmg = &?damage ?: 0
 print("[战斗] 命中反馈: 伤害=${&dmg}")
 ```
 
@@ -48,8 +48,8 @@ print("[战斗] 命中反馈: 伤害=${&dmg}")
 // 脚本 ID: debug.packet.trace
 // 被 wireshark/example.yml 引用
 
-name = &?packetName ?? "unknown"
-cls = &?packetClass ?? ""
+name = &?packetName ?: "unknown"
+cls = &?packetClass ?: ""
 print("[Wireshark] 追踪: ${&name} (${&cls})")
 ```
 
@@ -182,12 +182,36 @@ combat-deny:
 
 Fluxon 脚本自动导入以下 Java/Kotlin 包：
 
+- `cc.bkhk.monoceros.*`
 - `cc.bkhk.monoceros.api.*`
 - `org.bukkit.*`
 - `org.bukkit.entity.*`
 - `org.bukkit.inventory.*`
 
 无需手动 import 即可直接使用这些包中的类。
+
+注意：`Monoceros` 全局入口类在 `cc.bkhk.monoceros` 包下（不在 `api` 子包下），自动导入 `cc.bkhk.monoceros.*` 已覆盖。`Monoceros` 的公开方法标注了 `@JvmStatic`，Fluxon 脚本中可直接 `static` 调用：
+
+```fluxon
+api = static cc.bkhk.monoceros.Monoceros.api()
+plugin = static cc.bkhk.monoceros.Monoceros.plugin()
+```
+
+## Monoceros 扩展函数
+
+Monoceros 在 ENABLE 阶段向 Fluxon 运行时注册了以下扩展函数，脚本中直接调用，无需 import：
+
+| 分类 | 函数 | 说明 |
+|------|------|------|
+| JSON | `jsonParse(str)`, `jsonStringify(obj)`, `jsonPretty(obj)`, `jsonObject()`, `jsonArray()` | JSON 解析/序列化/构建 |
+| HTTP | `httpGet(url)`, `httpPost(url, body)`, `httpRequest(url, method, headers, body)` | 异步 HTTP 请求，返回 CompletableFuture，用 `await` 消费 |
+| UUID | `uuid()`, `uuidFromString(str)`, `uuidFromName(name)` | UUID 生成与解析 |
+| 冷却 | `cooldown(key, ms)`, `hasCooldown(key)`, `getCooldown(key)`, `removeCooldown(key)` | 冷却/频率限制 |
+| 颜色 | `colored(text)`, `uncolored(text)` | 颜色代码转换（`&a` → `§a`），String 扩展 `:: colored()` |
+| 日志 | `logInfo(msg)`, `logWarn(msg)`, `logDebug(msg)`, `logError(msg)` | 结构化日志输出 |
+| 正则 | `regex(pattern)`, `regexMatch(text, pattern)`, `regexMatchAll(text, pattern)`, `regexReplace(text, pattern, replacement)` | 正则表达式（含捕获组） |
+
+完整 API 参考见 `16-monoceros-functions.md`。
 
 ## 脚本处理器 API
 

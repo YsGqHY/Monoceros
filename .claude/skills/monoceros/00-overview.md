@@ -197,7 +197,7 @@ variables:
 
 ## API 门面
 
-Monoceros 通过 `MonocerosAPI` 门面接口提供 8 个子服务访问器：
+Monoceros 通过 `MonocerosAPI` 门面接口提供 9 个子服务访问器：
 
 | 方法 | 返回类型 | 说明 |
 |------|----------|------|
@@ -209,5 +209,26 @@ Monoceros 通过 `MonocerosAPI` 门面接口提供 8 个子服务访问器：
 | `volatility()` | `VolatilityService` | 挥发能力服务 |
 | `actionWorkflow()` | `ActionWorkflowService` | 动作工作流服务 |
 | `propertyWorkflow()` | `PropertyWorkflowService` | 属性工作流服务 |
+| `sessions()` | `SessionService` | 会话服务 |
 
-全局访问：`Monoceros.api()` 返回 `MonocerosAPI` 实例。
+全局访问：`Monoceros.api()` 返回 `MonocerosAPI` 实例。`Monoceros.plugin()` 返回 Bukkit `Plugin` 实例。
+
+### Fluxon 脚本中访问 API
+
+`Monoceros` 的公开方法标注了 `@JvmStatic`，在 Fluxon 脚本中可直接通过 `static` 调用：
+
+```fluxon
+// 获取 API
+api = static cc.bkhk.monoceros.Monoceros.api()
+
+// 获取插件实例（用于 Bukkit Scheduler 等）
+plugin = static cc.bkhk.monoceros.Monoceros.plugin()
+
+// 获取会话
+session = &api.sessions().getOrCreate(&p.getUniqueId())
+
+// 获取脚本处理器
+scripts = &api.scripts()
+```
+
+注意：不要写 `static cc.bkhk.monoceros.api.Monoceros`，`Monoceros` 类在 `cc.bkhk.monoceros` 包下，不在 `api` 子包下。

@@ -198,6 +198,13 @@ sealed class RegionShape {
 
 ### 会话服务（SessionService）
 
+通过 `Monoceros.api().sessions()` 获取。在 Fluxon 脚本中：
+
+```fluxon
+api = static cc.bkhk.monoceros.Monoceros.api()
+session = &api.sessions().getOrCreate(&p.getUniqueId())
+```
+
 | 方法 | 参数 | 说明 |
 |------|------|------|
 | `getOrCreate` | playerId | 获取或创建玩家会话 |

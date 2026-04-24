@@ -8,7 +8,7 @@
 
 ## 服务入口
 
-通过 `Monoceros.api().volatility()` 获取 `VolatilityService`，包含四个子服务：
+通过 `Monoceros.api().volatility()` 获取 `VolatilityService`（Kotlin），在 Fluxon 脚本中使用 `static cc.bkhk.monoceros.Monoceros.api().volatility()`。包含四个子服务：
 
 | 方法 | 返回类型 | 说明 |
 |------|----------|------|

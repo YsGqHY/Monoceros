@@ -5,7 +5,8 @@ description: >
   动作工作流、数据包监听、命令系统、机制服务（战斗/区域/交互/会话/视觉）、
   挥发能力（伪方块/世界边界/实体元数据/幻象）、版本适配，以及 Fluxon 脚本语言的
   完整语法参考（核心语法、变量引用、函数/Lambda、控制流、扩展函数、内置函数、
-  标准库模块、JVM 互操作、并发异步、注解系统）。
+  标准库模块、JVM 互操作、并发异步、注解系统），以及 Monoceros 注册的扩展函数
+  （JSON、HTTP、UUID、冷却、颜色文本、日志、正则表达式）。
   当用户要求编写、修改、审查 Monoceros 配置文件或 Fluxon 脚本时激活此 Skill。
 globs:
   - "**/dispatcher/**/*.yml"
@@ -56,6 +57,12 @@ globs:
 4. 参考 `13-fluxon-stdlib.md` 中的内置函数和扩展函数 API
 5. 参考 `14-fluxon-jvm-interop.md` 中的 JVM 互操作语法
 6. 参考 `15-fluxon-modules.md` 中的标准库模块 API
+7. 参考 `16-monoceros-functions.md` 中 Monoceros 注册的扩展函数（JSON、HTTP、UUID、冷却、颜色文本、日志、正则）
+8. 需要 JSON 解析时优先使用 `jsonParse`/`jsonStringify`，不要手写字符串截取
+9. 需要 HTTP 请求时使用 `httpGet`/`httpPost` + `await`，不要直接 `new java.net.URL`
+10. 需要颜色代码时使用 `colored()`/`uncolored()`，不要手动替换 `&` 为 `§`
+11. 需要冷却/防抖时使用 `cooldown()`，不要手写时间戳比较
+12. 需要正则捕获组时使用 `regex()` + `:: match()`，不要直接 `new java.util.regex.Pattern`
 
 ## 知识文件
 
@@ -80,3 +87,4 @@ globs:
 - `13-fluxon-stdlib.md` -- 全局内置函数（系统/类型转换/数学）、扩展函数速查表（String/Collection/Iterable/List/Map）、Domain 表达式
 - `14-fluxon-jvm-interop.md` -- JVM 互操作：`.` 反射访问、`static` 静态成员、`new` 构造、`impl` 匿名实现、并发异步（async/sync/await/scope）、注解系统
 - `15-fluxon-modules.md` -- import 模块系统：fs:time（时间）、fs:io（文件/路径）、fs:crypto（加密/编码）、fs:jvm（字节码注入）、fs:reflect（反射）
+- `16-monoceros-functions.md` -- Monoceros 扩展函数：JSON（jsonParse/jsonStringify）、HTTP（httpGet/httpPost/httpRequest + await）、UUID（uuid/uuidFromString/uuidFromName）、冷却（cooldown/hasCooldown/getCooldown）、颜色文本（colored/uncolored）、日志（logInfo/logWarn/logDebug/logError）、正则（regex/regexMatch/regexMatchAll/regexReplace + RegexWrapper/MatchWrapper 扩展）

@@ -149,7 +149,7 @@ print("玩家: ${player}")
 
 ```fluxon
 // 正确 -- 安全引用，不存在时返回 null
-name = &?player ?? "控制台"
+name = &?player ?: "控制台"
 
 // 危险 -- 变量不存在时报错
 name = &player
@@ -262,6 +262,33 @@ MAX = 20    // ❌ Cannot reassign constant: MAX
 ### 17. `static`/`new` 需要宿主权限
 
 宿主未开启 `allowJavaConstruction` 时，`static` 和 `new` 关键字会失败。
+
+### 17.5. Kotlin `object` 需要 `@JvmStatic` 才能被 Fluxon `static` 直接调用
+
+Kotlin `object` 的方法默认不是 Java 静态方法。如果没有标注 `@JvmStatic`，Fluxon 的 `static` 关键字找不到方法，必须通过 `INSTANCE` 访问：
+
+```fluxon
+// 没有 @JvmStatic 时 -- 必须通过 INSTANCE
+obj = static (com.example.MyObject).INSTANCE.doSomething()
+
+// 有 @JvmStatic 时 -- 可直接调用
+obj = static com.example.MyObject.doSomething()
+```
+
+`Monoceros` 的公开方法已标注 `@JvmStatic`，可直接调用：
+
+```fluxon
+// 正确
+api = static cc.bkhk.monoceros.Monoceros.api()
+plugin = static cc.bkhk.monoceros.Monoceros.plugin()
+```
+
+注意 `Monoceros` 类在 `cc.bkhk.monoceros` 包下，不在 `cc.bkhk.monoceros.api` 包下：
+
+```fluxon
+// 错误 -- 包路径错误，ClassNotFoundException
+api = static cc.bkhk.monoceros.api.Monoceros.api()
+```
 
 ### 18. `runAsync`/`runSync` 仅在 `scope {}` 内有效
 
