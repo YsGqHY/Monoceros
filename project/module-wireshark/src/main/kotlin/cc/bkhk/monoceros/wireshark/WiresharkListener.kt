@@ -9,21 +9,33 @@ import cc.bkhk.monoceros.api.wireshark.PacketTapDefinition
 import cc.bkhk.monoceros.api.wireshark.PacketTraceRecord
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
 import org.bukkit.entity.Player
-import taboolib.common.platform.event.SubscribeEvent
+import taboolib.common.event.InternalEventBus
+import taboolib.common.event.InternalListener
 import taboolib.common.platform.function.submit
 import taboolib.module.nms.PacketReceiveEvent
 import taboolib.module.nms.PacketSendEvent
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Packet 事件监听器
  *
- * 监听 TabooLib 的 PacketReceiveEvent / PacketSendEvent，
- * 按 tap 定义执行过滤、匹配、追踪、路由、拦截、覆写流程。
+ * 动态注册 TabooLib 的 PacketReceiveEvent / PacketSendEvent 监听，
+ * 仅在有 tap 定义需要处理时才注册。
+ *
+ * 监听器本身不会取消任何数据包事件，只有当 tap 配置了 intercept: true
+ * 且全局 allowIntercept 开关开启时，才会将事件标记为已取消。
  */
 object WiresharkListener {
 
     private const val MODULE = "Wireshark"
+
+    /** 是否已注册监听器 */
+    private val registered = AtomicBoolean(false)
+
+    /** 动态注册的监听器引用，用于注销 */
+    private var receiveListener: InternalListener? = null
+    private var sendListener: InternalListener? = null
 
     /** 延迟获取 PacketService 实例 */
     private val service: DefaultPacketService?
@@ -33,26 +45,62 @@ object WiresharkListener {
             null
         }
 
-    @SubscribeEvent
-    fun onPacketReceive(event: PacketReceiveEvent) {
-        val svc = service ?: return
-        val player = event.player
-        processPacket(svc, PacketDirection.RECEIVE, player, event.packet, event.packet.name) {
-            event.isCancelled = true
+    /**
+     * 动态注册 packet 事件监听器
+     *
+     * 仅在首次调用时注册，后续调用无效。
+     * 由 [WiresharkServiceLoader] 在确认有 tap 需要处理时调用。
+     */
+    fun register() {
+        if (!registered.compareAndSet(false, true)) return
+
+        receiveListener = InternalEventBus.listen(PacketReceiveEvent::class.java, 0, true) { event ->
+            try {
+                val svc = service ?: return@listen
+                if (svc.taps.isEmpty()) return@listen
+                if (processPacket(svc, PacketDirection.RECEIVE, event.player, event.packet, event.packet.name)) {
+                    event.isCancelled = true
+                }
+            } catch (e: Throwable) {
+                DiagnosticLogger.warn(MODULE, "PacketReceiveEvent 处理异常", e)
+            }
         }
+
+        sendListener = InternalEventBus.listen(PacketSendEvent::class.java, 0, true) { event ->
+            try {
+                val svc = service ?: return@listen
+                if (svc.taps.isEmpty()) return@listen
+                if (processPacket(svc, PacketDirection.SEND, event.player, event.packet, event.packet.name)) {
+                    event.isCancelled = true
+                }
+            } catch (e: Throwable) {
+                DiagnosticLogger.warn(MODULE, "PacketSendEvent 处理异常", e)
+            }
+        }
+
+        DiagnosticLogger.info(MODULE, "Packet 事件监听器已动态注册")
     }
 
-    @SubscribeEvent
-    fun onPacketSend(event: PacketSendEvent) {
-        val svc = service ?: return
-        val player = event.player
-        processPacket(svc, PacketDirection.SEND, player, event.packet, event.packet.name) {
-            event.isCancelled = true
-        }
+    /**
+     * 注销 packet 事件监听器
+     *
+     * 由 [WiresharkServiceLoader] 在 DISABLE 阶段调用。
+     */
+    fun unregister() {
+        if (!registered.compareAndSet(true, false)) return
+
+        receiveListener?.cancel()
+        receiveListener = null
+        sendListener?.cancel()
+        sendListener = null
+
+        DiagnosticLogger.info(MODULE, "Packet 事件监听器已注销")
     }
 
     /**
      * 统一处理流程
+     *
+     * @return true 表示需要取消该数据包（仅当 tap 配置了 intercept 且全局 allowIntercept 开启时）
      */
     private fun processPacket(
         svc: DefaultPacketService,
@@ -60,21 +108,27 @@ object WiresharkListener {
         player: Player,
         packet: Any,
         packetName: String,
-        cancelAction: () -> Unit,
-    ) {
+    ): Boolean {
         val session = svc.sessions[player.uniqueId]
+        var shouldCancel = false
 
         for ((tapId, tap) in svc.taps) {
             try {
-                processTap(svc, tap, session, direction, player, packet, packetName, cancelAction)
+                if (processTap(svc, tap, session, direction, player, packet, packetName)) {
+                    shouldCancel = true
+                }
             } catch (e: Exception) {
                 DiagnosticLogger.warn(MODULE, "tap 处理异常: $tapId", e)
             }
         }
+
+        return shouldCancel
     }
 
     /**
      * 处理单个 tap
+     *
+     * @return true 表示该 tap 要求取消数据包
      */
     private fun processTap(
         svc: DefaultPacketService,
@@ -84,17 +138,16 @@ object WiresharkListener {
         player: Player,
         packet: Any,
         packetName: String,
-        cancelAction: () -> Unit,
-    ) {
+    ): Boolean {
         // 1. 方向检查
-        if (direction !in tap.direction) return
+        if (direction !in tap.direction) return false
 
         // 2. 会话 tap 启用检查（若有会话则检查，无会话则跳过该 tap）
-        if (session == null || tap.id !in session.enabledTapIds) return
+        if (session == null || tap.id !in session.enabledTapIds) return false
 
         // 3. 匹配器检查
         tap.matcher?.let { spec ->
-            if (!matchPacket(spec.type, spec.value, packetName, packet)) return
+            if (!matchPacket(spec.type, spec.value, packetName, packet)) return false
         }
 
         // 构造上下文
@@ -111,7 +164,7 @@ object WiresharkListener {
 
         // 4. 过滤器
         for (filterSpec in tap.filters) {
-            if (filterPacket(filterSpec.type, filterSpec.value, context)) return
+            if (filterPacket(filterSpec.type, filterSpec.value, context)) return false
         }
 
         // 5. 追踪
@@ -152,15 +205,8 @@ object WiresharkListener {
             }
         }
 
-        // 9. 拦截
-        if (tap.intercept && svc.allowIntercept) {
-            context.cancelled = true
-        }
-
-        // 10. 应用结果
-        if (context.cancelled) {
-            cancelAction()
-        }
+        // 9. 仅当 tap 明确配置了 intercept 且全局开关允许时才取消数据包
+        return tap.intercept && svc.allowIntercept
     }
 
     /** 执行路由 */

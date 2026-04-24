@@ -41,11 +41,19 @@ object WiresharkServiceLoader {
     fun onEnable() {
         val count = configService.reloadAll()
         DiagnosticLogger.info(MODULE, "packet tap 加载完成: $count 个")
+
+        // 仅在有 tap 定义时才动态注册 packet 事件监听器，
+        // 避免无 tap 时触发 MeteorInjector 注入 Netty pipeline 导致 status/ping 异常
+        if (service.taps.isNotEmpty()) {
+            WiresharkListener.register()
+        }
+
         configService.startWatcher(configService.createWatcherCallback())
     }
 
     @Awake(LifeCycle.DISABLE)
     fun onDisable() {
+        WiresharkListener.unregister()
         configService.stopWatcher()
         service.closeAllSessions()
         DiagnosticLogger.info(MODULE, "数据包系统已清理")

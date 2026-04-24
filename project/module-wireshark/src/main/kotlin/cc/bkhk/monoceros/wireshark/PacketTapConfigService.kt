@@ -41,6 +41,15 @@ class PacketTapConfigService(
         })
         packetService.allowIntercept = packetService.taps.values.any { it.intercept }
         packetService.allowRewrite = packetService.taps.values.any { it.rewrite != null }
+
+        // 根据 tap 数量动态管理监听器注册：
+        // 有 tap 时确保监听器已注册，无 tap 时注销以避免不必要的 MeteorInjector 注入
+        if (packetService.taps.isNotEmpty()) {
+            WiresharkListener.register()
+        } else {
+            WiresharkListener.unregister()
+        }
+
         DiagnosticLogger.summary(MODULE, loaded)
         return loaded
     }
