@@ -16,6 +16,7 @@ import cc.bkhk.monoceros.impl.config.ConfigFileHash
 import cc.bkhk.monoceros.impl.config.ConfigService
 import cc.bkhk.monoceros.impl.config.ConfigServiceCallback
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
+import org.bukkit.Bukkit
 import taboolib.common.platform.function.submit
 import taboolib.library.configuration.ConfigurationSection
 import taboolib.module.configuration.Configuration
@@ -55,27 +56,91 @@ class DefaultCommandService(
     }
 
     override fun reloadAll(): Int {
-        // 注销所有现有命令
-        compiler.unregisterAll()
-        definitions.clear()
+        // 先收集所有待注册的命令定义
+        val pendingDefinitions = mutableListOf<CommandDefinition>()
         fileToDefinitionIds.clear()
 
         // 清空哈希快照，确保全量扫描时所有文件都触发 onCreated
         clearHashes()
 
-        var loaded = 0
         scan(object : ConfigServiceCallback {
             override fun onCreated(fileId: String, hash: ConfigFileHash) {
-                loaded += loadFile(fileId)
+                pendingDefinitions += collectDefinitions(fileId)
             }
             override fun onModified(fileId: String, hash: ConfigFileHash) {
-                loaded += loadFile(fileId)
+                pendingDefinitions += collectDefinitions(fileId)
             }
             override fun onDeleted(fileId: String) {}
         })
 
-        DiagnosticLogger.summary(MODULE, loaded)
-        return loaded
+        // 批量注销所有旧命令
+        compiler.unregisterAll()
+        definitions.clear()
+
+        // 延迟一个 tick 注册新命令，避免与 Paper 异步命令树构建线程产生 ConcurrentModificationException
+        if (pendingDefinitions.isNotEmpty()) {
+            submit(async = false, delay = 1) {
+                for (definition in pendingDefinitions) {
+                    definitions[definition.id] = definition
+                    compiler.compile(definition)
+                }
+                // 注册完成后统一刷新一次命令树
+                syncCommandsToOnlinePlayers()
+            }
+        }
+
+        DiagnosticLogger.summary(MODULE, pendingDefinitions.size)
+        return pendingDefinitions.size
+    }
+
+    /** 收集文件中的命令定义（不注册） */
+    private fun collectDefinitions(fileId: String): List<CommandDefinition> {
+        val dir = directory()
+        val file = dir.walkTopDown().find { f ->
+            f.isFile && !f.name.startsWith("#") && f.extension in setOf("yml", "yaml") &&
+                f.relativeTo(dir).path.replace('\\', '/').substringBeforeLast('.').replace('/', '.') == fileId
+        } ?: return emptyList()
+
+        val result = mutableListOf<CommandDefinition>()
+        val loadedIds = mutableSetOf<String>()
+        try {
+            val config = Configuration.loadFromFile(file)
+
+            if (config.contains("root")) {
+                val definition = parseDefinition(config, fileId)
+                if (definition != null) {
+                    result.add(definition)
+                    loadedIds.add(definition.id)
+                }
+            } else {
+                for (key in config.getKeys(false)) {
+                    val section = config.getConfigurationSection(key) ?: continue
+                    if (!section.contains("root")) continue
+                    val id = section.getString("id") ?: "$fileId.$key"
+                    val definition = parseDefinition(section, id)
+                    if (definition != null) {
+                        result.add(definition)
+                        loadedIds.add(definition.id)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            DiagnosticLogger.warn(MODULE, "命令文件解析失败: ${file.path}", e)
+        }
+
+        if (loadedIds.isNotEmpty()) {
+            fileToDefinitionIds[fileId] = loadedIds
+        }
+        return result
+    }
+
+    /** 向所有在线玩家刷新命令树 */
+    private fun syncCommandsToOnlinePlayers() {
+        try {
+            Bukkit.getOnlinePlayers().forEach { it.updateCommands() }
+        } catch (_: Throwable) {
+            // 静默忽略，部分版本可能不支持
+        }
     }
 
     /** 从文件加载命令定义 */
