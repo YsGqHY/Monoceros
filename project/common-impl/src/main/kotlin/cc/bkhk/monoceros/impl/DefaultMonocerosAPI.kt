@@ -3,6 +3,7 @@ package cc.bkhk.monoceros.impl
 import cc.bkhk.monoceros.api.MonocerosAPI
 import cc.bkhk.monoceros.api.command.CommandService
 import cc.bkhk.monoceros.api.dispatcher.DispatcherService
+import cc.bkhk.monoceros.api.mechanic.session.SessionService
 import cc.bkhk.monoceros.api.schedule.ScheduleService
 import cc.bkhk.monoceros.api.script.MonocerosScriptHandler
 import cc.bkhk.monoceros.api.volatility.VolatilityService
@@ -16,6 +17,7 @@ import cc.bkhk.monoceros.impl.noop.NoopPacketService
 import cc.bkhk.monoceros.impl.noop.NoopPropertyWorkflowService
 import cc.bkhk.monoceros.impl.noop.NoopScheduleService
 import cc.bkhk.monoceros.impl.noop.NoopScriptHandler
+import cc.bkhk.monoceros.impl.noop.NoopSessionService
 import cc.bkhk.monoceros.impl.noop.NoopVolatilityService
 import taboolib.common.platform.PlatformFactory
 
@@ -37,6 +39,7 @@ class DefaultMonocerosAPI : MonocerosAPI {
         private val NOOP_VOLATILITY = NoopVolatilityService()
         private val NOOP_ACTION_WORKFLOW = NoopActionWorkflowService()
         private val NOOP_PROPERTY_WORKFLOW = NoopPropertyWorkflowService()
+        private val NOOP_SESSION = NoopSessionService()
     }
 
     override fun scripts(): MonocerosScriptHandler =
@@ -62,4 +65,7 @@ class DefaultMonocerosAPI : MonocerosAPI {
 
     override fun propertyWorkflow(): PropertyWorkflowService =
         PlatformFactory.getAPIOrNull<PropertyWorkflowService>() ?: NOOP_PROPERTY_WORKFLOW
+
+    override fun sessions(): SessionService =
+        PlatformFactory.getAPIOrNull<SessionService>() ?: NOOP_SESSION
 }

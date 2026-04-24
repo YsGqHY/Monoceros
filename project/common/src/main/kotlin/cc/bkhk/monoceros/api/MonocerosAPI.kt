@@ -2,6 +2,7 @@ package cc.bkhk.monoceros.api
 
 import cc.bkhk.monoceros.api.command.CommandService
 import cc.bkhk.monoceros.api.dispatcher.DispatcherService
+import cc.bkhk.monoceros.api.mechanic.session.SessionService
 import cc.bkhk.monoceros.api.schedule.ScheduleService
 import cc.bkhk.monoceros.api.script.MonocerosScriptHandler
 import cc.bkhk.monoceros.api.volatility.VolatilityService
@@ -31,4 +32,7 @@ interface MonocerosAPI {
     fun actionWorkflow(): ActionWorkflowService
 
     fun propertyWorkflow(): PropertyWorkflowService
+
+    /** 会话服务，管理玩家运行态上下文 */
+    fun sessions(): SessionService
 }

@@ -5,6 +5,8 @@ import cc.bkhk.monoceros.api.command.CommandService
 import cc.bkhk.monoceros.api.dispatcher.DispatcherDefinition
 import cc.bkhk.monoceros.api.dispatcher.DispatcherService
 import cc.bkhk.monoceros.api.dispatcher.EventDispatcher
+import cc.bkhk.monoceros.api.mechanic.session.PlayerSession
+import cc.bkhk.monoceros.api.mechanic.session.SessionService
 import cc.bkhk.monoceros.api.schedule.ScheduleDefinition
 import cc.bkhk.monoceros.api.schedule.ScheduleHandle
 import cc.bkhk.monoceros.api.schedule.ScheduleService
@@ -162,6 +164,21 @@ class NoopPropertyWorkflowService : PropertyWorkflowService {
     override fun unregister(type: KClass<*>): PropertyAccessor<*>? = null
     override fun read(request: PropertyRequest): Any? = null
     override fun write(request: PropertyRequest) {}
+}
+
+// endregion
+
+// region Session
+
+class NoopSessionService : SessionService {
+    override fun getOrCreate(playerId: UUID): PlayerSession =
+        error("SessionService 尚未初始化")
+    override fun get(playerId: UUID): PlayerSession? = null
+    override fun destroy(playerId: UUID) {}
+    override fun snapshot(playerId: UUID): Map<String, Any?>? = null
+    override fun restore(playerId: UUID, snapshot: Map<String, Any?>) {}
+    override fun getPlayersInMechanic(mechanicId: String): Set<UUID> = emptySet()
+    override fun activeCount(): Int = 0
 }
 
 // endregion
