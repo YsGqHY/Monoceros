@@ -12,7 +12,7 @@ import cc.bkhk.monoceros.impl.exception.ScriptTypeMissingException
 import cc.bkhk.monoceros.impl.registry.ConcurrentRegistry
 import cc.bkhk.monoceros.impl.script.handler.FluxonHandler
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
-import taboolib.common.platform.ProxyCommandSender
+import org.bukkit.command.CommandSender
 import taboolib.common.platform.function.getDataFolder
 import java.io.File
 import java.util.concurrent.CompletableFuture
@@ -47,7 +47,7 @@ class DefaultScriptHandler(
 
         /** Fluxon 不可用时的降级实现 */
         private object UnavailableFluxonHandler : FluxonHandler {
-            override fun invoke(source: String, id: String, sender: ProxyCommandSender?, variables: Map<String, Any?>): Any? = null
+            override fun invoke(source: String, id: String, sender: CommandSender?, variables: Map<String, Any?>): Any? = null
             override fun preheat(source: String, id: String) {}
             override fun invalidate(id: String) {}
             override fun invalidateByPrefix(prefix: String) {}
@@ -79,7 +79,7 @@ class DefaultScriptHandler(
 
     override fun invoke(
         definitionId: String,
-        sender: ProxyCommandSender?,
+        sender: CommandSender?,
         variables: Map<String, Any?>,
     ): Any? {
         val definition = definitionRegistry.get(definitionId)
@@ -122,7 +122,7 @@ class DefaultScriptHandler(
     }
 
     /** 检查前置条件 */
-    private fun checkCondition(definition: ScriptDefinition, sender: ProxyCommandSender?, variables: Map<String, Any?>): Boolean {
+    private fun checkCondition(definition: ScriptDefinition, sender: CommandSender?, variables: Map<String, Any?>): Boolean {
         val conditionId = definition.condition ?: return true
         return try {
             val condResult = invoke(conditionId, sender, variables)
@@ -138,7 +138,7 @@ class DefaultScriptHandler(
     }
 
     /** 带超时和异常处理的脚本执行 */
-    private fun executeWithAdvancedFeatures(definition: ScriptDefinition, sender: ProxyCommandSender?, variables: Map<String, Any?>): Any? {
+    private fun executeWithAdvancedFeatures(definition: ScriptDefinition, sender: CommandSender?, variables: Map<String, Any?>): Any? {
         val request = ScriptInvokeRequest(
             definitionId = definition.id,
             source = definition.source,

@@ -8,7 +8,6 @@ import org.bukkit.Location
 import org.bukkit.entity.Player
 import org.bukkit.potion.PotionEffect
 import org.bukkit.potion.PotionEffectType
-import taboolib.common.platform.function.adaptPlayer
 import taboolib.common.platform.function.submit
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -74,7 +73,7 @@ class DefaultRegionService : RegionService {
             val vars = HashMap(region.variables)
             vars["player"] = player
             vars["regionId"] = region.id
-            Monoceros.api().scripts().invoke(scriptId, adaptPlayer(player), vars)
+            Monoceros.api().scripts().invoke(scriptId, player, vars)
         } catch (e: Exception) {
             DiagnosticLogger.warn("Region", "区域脚本执行异常: $scriptId", e)
         }

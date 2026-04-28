@@ -3,7 +3,7 @@ package cc.bkhk.monoceros.impl.script.flow
 import cc.bkhk.monoceros.Monoceros
 import cc.bkhk.monoceros.api.script.ScriptFlow
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
-import taboolib.common.platform.ProxyCommandSender
+import org.bukkit.command.CommandSender
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 有序执行脚本链，支持前置/后置处理、共享变量流转、失败处理和主动终止。
  */
 class DefaultScriptFlow(
-    private val sender: ProxyCommandSender?,
+    private val sender: CommandSender?,
     initialVariables: Map<String, Any?> = emptyMap(),
 ) : ScriptFlow {
 

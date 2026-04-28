@@ -4,6 +4,7 @@ import cc.bkhk.monoceros.api.script.ScriptCacheStats
 import cc.bkhk.monoceros.impl.script.DefaultScriptHandler
 import cc.bkhk.monoceros.impl.script.relocate.FluxonRelocate
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.tabooproject.fluxon.Fluxon
 import org.tabooproject.fluxon.FluxonPlugin
@@ -17,7 +18,6 @@ import org.tabooproject.fluxon.util.printError
 import taboolib.common.LifeCycle
 import taboolib.common.Requires
 import taboolib.common.platform.Awake
-import taboolib.common.platform.ProxyCommandSender
 import taboolib.platform.BukkitPlugin
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
@@ -61,7 +61,7 @@ object Fluxon : FluxonHandler {
     override fun invoke(
         source: String,
         id: String,
-        sender: ProxyCommandSender?,
+        sender: CommandSender?,
         variables: Map<String, Any?>
     ): Any? {
         if (!compiledScripts.containsKey(id)) {
@@ -92,14 +92,9 @@ object Fluxon : FluxonHandler {
         env.defineRootVariable("now", System.currentTimeMillis())
         env.defineRootVariable("thread", Thread.currentThread().name)
 
-        // 如果 sender 底层是 Player，额外注入 player 变量
-        val platformSender = try {
-            sender?.origin
-        } catch (_: Exception) {
-            null
-        }
-        if (platformSender is Player) {
-            env.defineRootVariable("player", platformSender)
+        // 如果 sender 是 Player，额外注入 player 变量
+        if (sender is Player) {
+            env.defineRootVariable("player", sender)
         }
 
         return try {

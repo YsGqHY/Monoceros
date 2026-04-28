@@ -15,7 +15,6 @@ import taboolib.common.LifeCycle
 import taboolib.common.platform.Awake
 import taboolib.common.platform.PlatformFactory
 import taboolib.common.platform.event.SubscribeEvent
-import taboolib.common.platform.function.adaptPlayer
 import java.util.concurrent.ConcurrentHashMap
 
 class DefaultInteractService : InteractService {
@@ -70,7 +69,7 @@ class DefaultInteractService : InteractService {
                 val vars = HashMap(def.variables)
                 vars["player"] = player
                 vars["interactType"] = type.name
-                Monoceros.api().scripts().invoke(def.script, adaptPlayer(player), vars)
+                Monoceros.api().scripts().invoke(def.script, player, vars)
             } catch (e: Exception) {
                 DiagnosticLogger.warn("Interact", "交互脚本执行异常: ${def.id}", e)
             }

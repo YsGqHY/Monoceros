@@ -37,8 +37,8 @@ import cc.bkhk.monoceros.api.workflow.PropertyWorkflowService
 import org.bukkit.Location
 import org.bukkit.block.data.BlockData
 import org.bukkit.entity.Entity
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import taboolib.common.platform.ProxyCommandSender
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -53,7 +53,7 @@ import kotlin.reflect.KClass
 
 class NoopScriptHandler : MonocerosScriptHandler {
     override fun invoke(request: ScriptInvokeRequest): Any? = null
-    override fun invoke(definitionId: String, sender: ProxyCommandSender?, variables: Map<String, Any?>): Any? = null
+    override fun invoke(definitionId: String, sender: CommandSender?, variables: Map<String, Any?>): Any? = null
     override fun preheat(definitionId: String) {}
     override fun preheat(source: MonocerosScriptSource, definitionId: String) {}
     override fun registerScriptType(scriptType: MonocerosScriptType): MonocerosScriptType = scriptType
@@ -155,7 +155,7 @@ class NoopVolatilityService : VolatilityService {
 class NoopActionWorkflowService : ActionWorkflowService {
     override fun registerNode(node: ActionNode): ActionNode = node
     override fun unregisterNode(type: String): ActionNode? = null
-    override fun execute(id: String, sender: ProxyCommandSender?, variables: Map<String, Any?>): Any? = null
+    override fun execute(id: String, sender: CommandSender?, variables: Map<String, Any?>): Any? = null
     override fun reloadAll(): Int = 0
 }
 

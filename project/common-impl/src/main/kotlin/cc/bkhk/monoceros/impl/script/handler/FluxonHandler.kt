@@ -1,7 +1,7 @@
 package cc.bkhk.monoceros.impl.script.handler
 
 import cc.bkhk.monoceros.api.script.ScriptCacheStats
-import taboolib.common.platform.ProxyCommandSender
+import org.bukkit.command.CommandSender
 
 /**
  * Fluxon 处理器接口
@@ -14,7 +14,7 @@ interface FluxonHandler {
     fun invoke(
         source: String,
         id: String,
-        sender: ProxyCommandSender?,
+        sender: CommandSender?,
         variables: Map<String, Any?>
     ): Any?
 

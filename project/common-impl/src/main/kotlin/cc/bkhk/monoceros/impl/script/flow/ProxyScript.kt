@@ -1,7 +1,7 @@
 package cc.bkhk.monoceros.impl.script.flow
 
 import cc.bkhk.monoceros.Monoceros
-import taboolib.common.platform.ProxyCommandSender
+import org.bukkit.command.CommandSender
 
 /**
  * 延迟解析脚本代理
@@ -21,7 +21,7 @@ class ProxyScript(
      * @param variables 变量表
      * @return 脚本执行结果
      */
-    fun invoke(sender: ProxyCommandSender?, variables: Map<String, Any?> = emptyMap()): Any? {
+    fun invoke(sender: CommandSender?, variables: Map<String, Any?> = emptyMap()): Any? {
         return Monoceros.api().scripts().invoke(scriptId, sender, variables)
     }
 
