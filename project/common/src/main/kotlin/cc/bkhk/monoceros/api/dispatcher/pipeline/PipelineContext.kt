@@ -1,10 +1,9 @@
 package cc.bkhk.monoceros.api.dispatcher.pipeline
 
+import org.bukkit.Bukkit
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 import org.bukkit.event.Event
-import taboolib.common.platform.ProxyCommandSender
-import taboolib.common.platform.function.adaptPlayer
-import taboolib.common.platform.function.console
 
 /**
  * Pipeline 运行时上下文
@@ -45,8 +44,8 @@ class PipelineContext(
     /** 变量表 */
     val variables: MutableMap<String, Any?> = LinkedHashMap()
 
-    /** 获取 ProxyCommandSender */
-    fun sender(): ProxyCommandSender {
-        return player?.let { adaptPlayer(it) } ?: console()
+    /** 获取 CommandSender */
+    fun sender(): CommandSender {
+        return player ?: Bukkit.getConsoleSender()
     }
 }

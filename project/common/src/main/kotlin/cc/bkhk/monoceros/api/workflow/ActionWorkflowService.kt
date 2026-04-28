@@ -1,6 +1,7 @@
 package cc.bkhk.monoceros.api.workflow
 
-import taboolib.common.platform.ProxyCommandSender
+import cc.bkhk.monoceros.api.util.SenderAdapter
+import org.bukkit.command.CommandSender
 
 /**
  * 动作工作流定义
@@ -34,10 +35,21 @@ enum class ActionFailurePolicy {
  */
 data class ActionContext(
     val workflowId: String,
-    val sender: ProxyCommandSender?,
+    val sender: CommandSender?,
     val variables: MutableMap<String, Any?> = LinkedHashMap(),
     val trace: MutableList<String> = mutableListOf(),
-)
+) {
+    companion object {
+        /** 兼容旧版 API：接受任意 sender 类型（含 relocated ProxyCommandSender） */
+        @JvmStatic
+        fun fromAnySender(
+            workflowId: String,
+            sender: Any?,
+            variables: MutableMap<String, Any?> = LinkedHashMap(),
+            trace: MutableList<String> = mutableListOf(),
+        ): ActionContext = ActionContext(workflowId, SenderAdapter.adapt(sender), variables, trace)
+    }
+}
 
 /**
  * 动作节点执行结果
@@ -72,6 +84,15 @@ interface ActionNode {
 interface ActionWorkflowService {
     fun registerNode(node: ActionNode): ActionNode
     fun unregisterNode(type: String): ActionNode?
-    fun execute(id: String, sender: ProxyCommandSender?, variables: Map<String, Any?> = emptyMap()): Any?
+    fun execute(id: String, sender: CommandSender?, variables: Map<String, Any?> = emptyMap()): Any?
     fun reloadAll(): Int
+
+    /**
+     * 兼容旧版 API：接受任意 sender 类型（含 relocated ProxyCommandSender）
+     *
+     * 内部通过 [SenderAdapter] 将 sender 转换为 [CommandSender] 后委托给主方法。
+     */
+    fun executeCompat(id: String, sender: Any?, variables: Map<String, Any?> = emptyMap()): Any? {
+        return execute(id, SenderAdapter.adapt(sender), variables)
+    }
 }

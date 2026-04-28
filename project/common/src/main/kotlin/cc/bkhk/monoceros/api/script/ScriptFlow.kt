@@ -1,7 +1,5 @@
 package cc.bkhk.monoceros.api.script
 
-import taboolib.common.platform.ProxyCommandSender
-
 /**
  * 有序脚本链
  *

@@ -1,6 +1,7 @@
 package cc.bkhk.monoceros.api.script
 
-import taboolib.common.platform.ProxyCommandSender
+import cc.bkhk.monoceros.api.util.SenderAdapter
+import org.bukkit.command.CommandSender
 
 /**
  * 脚本处理器统一入口
@@ -19,9 +20,22 @@ interface MonocerosScriptHandler {
      */
     fun invoke(
         definitionId: String,
-        sender: ProxyCommandSender? = null,
+        sender: CommandSender? = null,
         variables: Map<String, Any?> = emptyMap(),
     ): Any?
+
+    /**
+     * 兼容旧版 API：接受任意 sender 类型（含 relocated ProxyCommandSender）
+     *
+     * 内部通过 [SenderAdapter] 将 sender 转换为 [CommandSender] 后委托给主方法。
+     */
+    fun invokeCompat(
+        definitionId: String,
+        sender: Any?,
+        variables: Map<String, Any?> = emptyMap(),
+    ): Any? {
+        return invoke(definitionId, SenderAdapter.adapt(sender), variables)
+    }
 
     fun preheat(definitionId: String)
 

@@ -1,6 +1,7 @@
 package cc.bkhk.monoceros.api.schedule
 
-import taboolib.common.platform.ProxyCommandSender
+import cc.bkhk.monoceros.api.util.SenderAdapter
+import org.bukkit.command.CommandSender
 
 /**
  * 调度强类型处理器
@@ -21,6 +22,21 @@ data class ScheduleContext(
     val runtimeId: String,
     val runCount: Int,
     val startedAt: Long,
-    val sender: ProxyCommandSender? = null,
+    val sender: CommandSender? = null,
     val variables: Map<String, Any?>,
-)
+) {
+    companion object {
+        /** 兼容旧版 API：接受任意 sender 类型（含 relocated ProxyCommandSender） */
+        @JvmStatic
+        fun fromAnySender(
+            definitionId: String,
+            runtimeId: String,
+            runCount: Int,
+            startedAt: Long,
+            sender: Any?,
+            variables: Map<String, Any?>,
+        ): ScheduleContext = ScheduleContext(
+            definitionId, runtimeId, runCount, startedAt, SenderAdapter.adapt(sender), variables,
+        )
+    }
+}
