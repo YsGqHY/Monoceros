@@ -7,6 +7,8 @@ import org.bukkit.Material
 import org.bukkit.event.Event
 import org.bukkit.inventory.EquipmentSlot
 import org.bukkit.inventory.ItemStack
+import taboolib.platform.util.getEquipment
+import taboolib.type.BukkitEquipment
 import java.util.EnumMap
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -26,13 +28,15 @@ class PlayerArmorChangeStateProbe : StateProbe {
         EquipmentSlot.FEET,
     )
 
+    private val emptyItem = ItemStack(Material.AIR)
+
     override fun poll(): Collection<Event> {
         val events = mutableListOf<Event>()
         Bukkit.getOnlinePlayers().forEach { player ->
             val slots = cache.computeIfAbsent(player.uniqueId) { EnumMap(EquipmentSlot::class.java) }
             armorSlots.forEach { slot ->
-                val oldItem = (slots[slot] ?: ItemStack(Material.AIR)).clone()
-                val newItem = (player.equipment?.getItem(slot) ?: ItemStack(Material.AIR)).clone()
+                val oldItem = (slots[slot] ?: emptyItem).clone()
+                val newItem = (BukkitEquipment.fromBukkit(slot)?.let { player.getEquipment(it) } ?: emptyItem).clone()
                 if (oldItem.isSimilar(newItem) && oldItem.amount == newItem.amount) {
                     return@forEach
                 }
