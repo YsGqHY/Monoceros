@@ -7,7 +7,6 @@ import cc.bkhk.monoceros.api.workflow.ActionContext
 import cc.bkhk.monoceros.api.workflow.ActionNode
 import cc.bkhk.monoceros.api.workflow.ActionNodeDefinition
 import org.bukkit.entity.Player
-import taboolib.common.platform.function.adaptPlayer
 
 /** 取消当前可取消事件 */
 class EventCancelNode : ActionNode {

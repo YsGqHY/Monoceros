@@ -17,7 +17,6 @@ import org.bukkit.Material
 import org.bukkit.command.CommandSender
 import taboolib.common.platform.command.command
 import taboolib.common.platform.command.component.CommandComponent
-import taboolib.common.platform.function.adaptCommandSender
 import taboolib.common.platform.function.unregisterCommand
 import java.util.concurrent.ConcurrentHashMap
 
@@ -110,10 +109,9 @@ class CommandCompiler(
         node.route?.let { route ->
             val capturedArgs = HashMap(accumulatedArgs)
             component.execute<CommandSender> { sender, _, content ->
-                val proxyCmd = adaptCommandSender(sender)
                 val cmdContext = CommandContext(
                     definitionId = definitionId,
-                    sender = proxyCmd,
+                    sender = sender,
                     rawArgs = content.split(" ").filter { it.isNotBlank() },
                     parsedArgs = capturedArgs,
                     path = path,
@@ -151,12 +149,11 @@ class CommandCompiler(
                     return@execute
                 }
 
-                val proxyCmd = adaptCommandSender(sender)
                 val parsedArgs = HashMap(capturedArgs)
                 parsedArgs[node.name] = parsedValue
                 val cmdContext = CommandContext(
                     definitionId = definitionId,
-                    sender = proxyCmd,
+                    sender = sender,
                     rawArgs = content.split(" ").filter { it.isNotBlank() },
                     parsedArgs = parsedArgs,
                     path = path,
@@ -253,7 +250,7 @@ class CommandCompiler(
         if (provider != null) {
             val cmdContext = CommandContext(
                 definitionId = definitionId,
-                sender = adaptCommandSender(sender),
+                sender = sender,
                 rawArgs = emptyList(),
                 parsedArgs = emptyMap(),
                 path = emptyList(),

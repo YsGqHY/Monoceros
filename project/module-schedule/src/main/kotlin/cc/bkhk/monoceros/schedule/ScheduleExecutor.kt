@@ -11,10 +11,8 @@ import cc.bkhk.monoceros.api.schedule.SenderSelectorType
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
 import org.bukkit.Bukkit
 import org.bukkit.Location
+import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import taboolib.common.platform.ProxyCommandSender
-import taboolib.common.platform.function.adaptCommandSender
-import taboolib.common.platform.function.adaptPlayer
 
 /**
  * 调度执行器
@@ -26,7 +24,7 @@ class ScheduleExecutor(
 ) {
 
     private data class ResolvedScheduleSender(
-        val sender: ProxyCommandSender?,
+        val sender: CommandSender?,
         val player: Player? = null,
     )
 
@@ -136,12 +134,12 @@ class ScheduleExecutor(
         variables: Map<String, Any?>,
     ): List<ResolvedScheduleSender> {
         return when (selector.type) {
-            SenderSelectorType.CONSOLE -> listOf(ResolvedScheduleSender(adaptCommandSender(Bukkit.getConsoleSender()), null))
-            SenderSelectorType.ONLINE_PLAYER -> Bukkit.getOnlinePlayers().map { ResolvedScheduleSender(adaptPlayer(it), it) }
-            SenderSelectorType.PLAYER -> resolvePlayer(selector.value, variables)?.let { listOf(ResolvedScheduleSender(adaptPlayer(it), it)) } ?: emptyList()
-            SenderSelectorType.WORLD -> resolveWorldPlayers(selector, variables).map { ResolvedScheduleSender(adaptPlayer(it), it) }
-            SenderSelectorType.RANGE -> resolveRangePlayers(selector, variables).map { ResolvedScheduleSender(adaptPlayer(it), it) }
-            SenderSelectorType.AREA -> resolveAreaPlayers(selector, variables).map { ResolvedScheduleSender(adaptPlayer(it), it) }
+            SenderSelectorType.CONSOLE -> listOf(ResolvedScheduleSender(Bukkit.getConsoleSender(), null))
+            SenderSelectorType.ONLINE_PLAYER -> Bukkit.getOnlinePlayers().map { ResolvedScheduleSender(it, it) }
+            SenderSelectorType.PLAYER -> resolvePlayer(selector.value, variables)?.let { listOf(ResolvedScheduleSender(it, it)) } ?: emptyList()
+            SenderSelectorType.WORLD -> resolveWorldPlayers(selector, variables).map { ResolvedScheduleSender(it, it) }
+            SenderSelectorType.RANGE -> resolveRangePlayers(selector, variables).map { ResolvedScheduleSender(it, it) }
+            SenderSelectorType.AREA -> resolveAreaPlayers(selector, variables).map { ResolvedScheduleSender(it, it) }
         }
     }
 

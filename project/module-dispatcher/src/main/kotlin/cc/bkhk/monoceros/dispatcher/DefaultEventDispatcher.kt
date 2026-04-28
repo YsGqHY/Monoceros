@@ -15,7 +15,6 @@ import cc.bkhk.monoceros.dispatcher.pipeline.ReflexPlayerPipeline
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
 import org.bukkit.event.Cancellable
 import org.bukkit.event.Event
-import taboolib.common.platform.function.adaptPlayer
 
 /**
  * 事件分发器默认实现
@@ -62,7 +61,7 @@ class DefaultEventDispatcher(
         pipeline.initVariables(pipelineCtx)
 
         // 构造 DispatcherContext
-        val sender = pipelineCtx.player?.let { adaptPlayer(it) }
+        val sender = pipelineCtx.player
         val context = DispatcherContext(
             definitionId = definition.id,
             event = event,

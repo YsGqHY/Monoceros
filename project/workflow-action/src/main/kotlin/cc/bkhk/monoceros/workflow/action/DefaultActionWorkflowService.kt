@@ -12,7 +12,7 @@ import cc.bkhk.monoceros.impl.config.ConfigService
 import cc.bkhk.monoceros.impl.config.ConfigServiceCallback
 import cc.bkhk.monoceros.impl.registry.ConcurrentRegistry
 import cc.bkhk.monoceros.impl.util.DiagnosticLogger
-import taboolib.common.platform.ProxyCommandSender
+import org.bukkit.command.CommandSender
 import taboolib.common.platform.function.submit
 import taboolib.library.configuration.ConfigurationSection
 import taboolib.module.configuration.Configuration
@@ -48,7 +48,7 @@ class DefaultActionWorkflowService : ConfigService("workflow/action"), ActionWor
         return nodeRegistry.unregister(type)
     }
 
-    override fun execute(id: String, sender: ProxyCommandSender?, variables: Map<String, Any?>): Any? {
+    override fun execute(id: String, sender: CommandSender?, variables: Map<String, Any?>): Any? {
         val definition = definitions[id]
             ?: error("动作工作流定义不存在: $id")
 

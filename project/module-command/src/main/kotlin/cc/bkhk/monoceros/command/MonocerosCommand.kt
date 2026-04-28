@@ -19,7 +19,6 @@ import taboolib.common.platform.ProxyCommandSender
 import taboolib.common.platform.command.PermissionDefault
 import taboolib.common.platform.command.command
 import taboolib.common.platform.function.adaptCommandSender
-import taboolib.common.platform.function.adaptPlayer
 import taboolib.common.platform.function.pluginVersion
 import taboolib.expansion.createHelper
 import taboolib.module.chat.Components
@@ -181,12 +180,12 @@ object MonocerosCommand {
                 literal("run") {
                     dynamic("id") {
                         suggestion<ProxyCommandSender> { _, _ -> scriptIds() }
-                        execute<CommandSender> { sender, _, content ->
+                        execute<ProxyCommandSender> { sender, _, content ->
                             val args = content.split(" ").filter { it.isNotBlank() }
                             val id = args.firstOrNull() ?: return@execute
                             val targetName = args.getOrNull(1)
                             val targetSender = targetName?.let { resolveTarget(it) }
-                            executeScript(adaptCommandSender(sender), id, false, targetSender)
+                            executeScript(sender, id, false, targetSender)
                         }
                     }
                 }
@@ -195,12 +194,12 @@ object MonocerosCommand {
                 literal("run-silent") {
                     dynamic("id") {
                         suggestion<ProxyCommandSender> { _, _ -> scriptIds() }
-                        execute<CommandSender> { sender, _, content ->
+                        execute<ProxyCommandSender> { sender, _, content ->
                             val args = content.split(" ").filter { it.isNotBlank() }
                             val id = args.firstOrNull() ?: return@execute
                             val targetName = args.getOrNull(1)
                             val targetSender = targetName?.let { resolveTarget(it) }
-                            executeScript(adaptCommandSender(sender), id, true, targetSender)
+                            executeScript(sender, id, true, targetSender)
                         }
                     }
                 }
@@ -477,14 +476,13 @@ object MonocerosCommand {
         }
     }
 
-    private fun resolveTarget(name: String): ProxyCommandSender? {
-        val player = Bukkit.getPlayerExact(name) ?: return null
-        return adaptPlayer(player)
+    private fun resolveTarget(name: String): CommandSender? {
+        return Bukkit.getPlayerExact(name)
     }
 
-    private fun executeScript(sender: ProxyCommandSender, id: String, silent: Boolean, target: ProxyCommandSender? = null) {
+    private fun executeScript(sender: ProxyCommandSender, id: String, silent: Boolean, target: CommandSender? = null) {
         try {
-            val executeSender = target ?: sender
+            val executeSender = target ?: (sender.origin as? CommandSender)
             val result = Monoceros.api().scripts().invoke(id, executeSender, emptyMap())
             if (!silent) {
                 sender.sendMessage("&a脚本执行完成: $id &7-> &f$result".colored())

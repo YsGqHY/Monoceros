@@ -220,14 +220,14 @@ object WiresharkListener {
             is PacketRoute.Script -> {
                 Monoceros.api().scripts().invoke(
                     route.scriptId,
-                    taboolib.common.platform.function.adaptPlayer(player),
+                    player,
                     context.variables,
                 )
             }
             is PacketRoute.ActionWorkflow -> {
                 Monoceros.api().actionWorkflow().execute(
                     route.workflowId,
-                    taboolib.common.platform.function.adaptPlayer(player),
+                    player,
                     context.variables,
                 )
             }
